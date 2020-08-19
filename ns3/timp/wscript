@@ -1,0 +1,30 @@
+
+def build(bld):
+    module = bld.create_ns3_module('timp', ['internet'])
+    module.includes = '.'
+    module.source = [
+        'model/timp.cc',
+        'model/timp-header.cc',
+        'model/timp-global.cc',
+        'helper/timp-helper.cc',
+        'model/dfs.cc',
+        'model/links.cc',
+        'model/priq.cc',
+        ]
+
+
+    headers = bld(features='ns3header')
+    headers.module = 'timp'
+    headers.source = [
+        'model/timp.h',
+        'model/timp-header.h',
+        'model/timp-global.h',
+        'helper/timp-helper.h',
+        'model/dfs.h',
+        'model/links.h',
+        'model/priq.h',
+        'model/machdep.h',
+        ]
+
+
+    bld.ns3_python_bindings()
