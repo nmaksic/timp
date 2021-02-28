@@ -34,8 +34,8 @@ using namespace std;
 void Nodes::depthFirstSearch(vector<TNodep> &path, vector<vector<TNodep>> &finishedPaths, int dstid, int depth)
 
 {
-   if (depth++ > 100) {
-      printf("depthFirstSearch depth 100 \n");
+   if (depth++ > 15) {
+      // stop search
       return;
    }
 
@@ -69,10 +69,22 @@ void Nodes::depthFirstSearch(vector<TNodep> &path, vector<vector<TNodep>> &finis
          continue;
       }
 
-      // recursion
-      std::vector<TNodep> path1(path);
-      path1.push_back (*W);
-      depthFirstSearch(path1, finishedPaths, dstid, depth);
+      bool loop = false;
+      for (std::vector<TNodep>::iterator it = path.begin() ; it != path.end(); ++it)
+         if (it->node_id == W->node_id)
+            loop = true;
+
+      if (!loop) {
+         // recursion
+         std::vector<TNodep> path1(path);
+         path1.push_back (*W);
+         
+         /*for (std::vector<TNodep>::iterator it = path1.begin() ; it != path1.end(); ++it)
+             std::cout << ' ' << it->node_id;
+           std::cout << '\n';*/
+         
+         depthFirstSearch(path1, finishedPaths, dstid, depth);
+      }
 
    }
 }
@@ -386,8 +398,8 @@ void Nodes::addlink(int switcha, int switchb) {
    Link *nodelinks = (nodeList[switcha])->t_links;
 
    if (nodelinks != NULL) {
-   while (nodelinks->l_next != NULL)
-      nodelinks = nodelinks->l_next;
+      while (nodelinks->l_next != NULL)
+         nodelinks = nodelinks->l_next;
       nodelinks->l_next = new TLinkp(tmp, 1);
    } else
       nodeList[switcha]->t_links = new TLinkp(tmp, 1);
