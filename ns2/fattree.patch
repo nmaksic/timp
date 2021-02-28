@@ -1,0 +1,4648 @@
+diff -ruN ns-2.35/common/packet.h ns-2.35-1/common/packet.h
+--- ns-2.35/common/packet.h	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/common/packet.h	2021-01-01 15:26:14.238572000 +0100
+@@ -201,9 +201,12 @@
+ 
+         // HULA packets
+ static const packet_t PT_HULA = 73;
++
++        // TIMP packets
++static const packet_t PT_TIMP = 74;
+ 	
+         // insert new packet types here
+-static packet_t       PT_NTYPE = 74; // This MUST be the LAST one
++static packet_t       PT_NTYPE = 75; // This MUST be the LAST one
+ 
+ enum packetClass
+ {
+@@ -422,6 +425,9 @@
+ 
+         //HULA
+ 		name_[PT_HULA]="Hula";
++		
++	// TIMP
++		name_[PT_TIMP]="TIMP";
+ 
+ 		name_[PT_NTYPE]= "undefined";
+ 	}
+diff -ruN ns-2.35/config.log ns-2.35-1/config.log
+--- ns-2.35/config.log	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/config.log	2021-02-16 20:10:04.971182000 +0100
+@@ -10,11 +10,11 @@
+ ## Platform. ##
+ ## --------- ##
+ 
+-hostname = htb-1n-eng-dhcp337
++hostname = ubuntu-desktop
+ uname -m = x86_64
+-uname -r = 3.13.0-53-generic
++uname -r = 5.4.0-65-generic
+ uname -s = Linux
+-uname -v = #89-Ubuntu SMP Wed May 20 10:34:39 UTC 2015
++uname -v = #73-Ubuntu SMP Mon Jan 18 17:25:17 UTC 2021
+ 
+ /usr/bin/uname -p = unknown
+ /bin/uname -X     = unknown
+@@ -27,7 +27,8 @@
+ /usr/bin/oslevel       = unknown
+ /bin/universe          = unknown
+ 
+-PATH: /home/nkatta/ns2/ns-allinone-2.35/bin
++PATH: /home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/bin
++PATH: /home/ubuntu/FDS/FDS6/bin
+ PATH: /usr/local/sbin
+ PATH: /usr/local/bin
+ PATH: /usr/sbin
+@@ -36,83 +37,91 @@
+ PATH: /bin
+ PATH: /usr/games
+ PATH: /usr/local/games
++PATH: /snap/bin
++PATH: /home/ubuntu/tutorial/cosmos/dist/bin
++PATH: /home/ubuntu/hdd/sharedhula/ns-allinone-2.35/bin
++PATH: /home/ubuntu/hdd/sharedhula/ns-allinone-2.35/tcl8.5.10/unix
++PATH: /home/ubuntu/hdd/sharedhula/ns-allinone-2.35/tk8.5.10/unix
++PATH: /home/ubuntu/hdd/sharedhula/ns-allinone-2.35/tclcl-1.20
+ 
+ 
+ ## ----------- ##
+ ## Core tests. ##
+ ## ----------- ##
+ 
+-configure:2498: checking for gcc
+-configure:2514: found /usr/bin/gcc
+-configure:2525: result: gcc
+-configure:2754: checking for C compiler version
+-configure:2763: gcc --version >&5
+-gcc (Ubuntu 4.8.2-19ubuntu1) 4.8.2
+-Copyright (C) 2013 Free Software Foundation, Inc.
++configure:2494: checking for gcc
++configure:2510: found /usr/bin/gcc
++configure:2521: result: gcc
++configure:2750: checking for C compiler version
++configure:2759: gcc --version >&5
++gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
++Copyright (C) 2019 Free Software Foundation, Inc.
+ This is free software; see the source for copying conditions.  There is NO
+ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ 
+-configure:2774: $? = 0
+-configure:2763: gcc -v >&5
++configure:2770: $? = 0
++configure:2759: gcc -v >&5
+ Using built-in specs.
+ COLLECT_GCC=gcc
+-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.8/lto-wrapper
++COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/9/lto-wrapper
++OFFLOAD_TARGET_NAMES=nvptx-none:hsa
++OFFLOAD_TARGET_DEFAULT=1
+ Target: x86_64-linux-gnu
+-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.8.2-19ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.8 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.8 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-libmudflap --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.8-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
++Configured with: ../src/configure -v --with-pkgversion='Ubuntu 9.3.0-17ubuntu1~20.04' --with-bugurl=file:///usr/share/doc/gcc-9/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++,gm2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-9 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-9-HskZEa/gcc-9-9.3.0/debian/tmp-nvptx/usr,hsa --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+ Thread model: posix
+-gcc version 4.8.2 (Ubuntu 4.8.2-19ubuntu1) 
+-configure:2774: $? = 0
+-configure:2763: gcc -V >&5
++gcc version 9.3.0 (Ubuntu 9.3.0-17ubuntu1~20.04) 
++configure:2770: $? = 0
++configure:2759: gcc -V >&5
+ gcc: error: unrecognized command line option '-V'
+ gcc: fatal error: no input files
+ compilation terminated.
+-configure:2774: $? = 4
+-configure:2763: gcc -qversion >&5
+-gcc: error: unrecognized command line option '-qversion'
++configure:2770: $? = 1
++configure:2759: gcc -qversion >&5
++gcc: error: unrecognized command line option '-qversion'; did you mean '--version'?
+ gcc: fatal error: no input files
+ compilation terminated.
+-configure:2774: $? = 4
+-configure:2794: checking whether the C compiler works
+-configure:2816: gcc    conftest.c  >&5
+-configure:2820: $? = 0
+-configure:2868: result: yes
+-configure:2871: checking for C compiler default output file name
+-configure:2873: result: a.out
+-configure:2879: checking for suffix of executables
+-configure:2886: gcc -o conftest    conftest.c  >&5
+-configure:2890: $? = 0
+-configure:2912: result: 
+-configure:2934: checking whether we are cross compiling
+-configure:2942: gcc -o conftest    conftest.c  >&5
+-configure:2946: $? = 0
+-configure:2953: ./conftest
+-configure:2957: $? = 0
+-configure:2972: result: no
+-configure:2977: checking for suffix of object files
+-configure:2999: gcc -c   conftest.c >&5
+-configure:3003: $? = 0
+-configure:3024: result: o
+-configure:3028: checking whether we are using the GNU C compiler
+-configure:3047: gcc -c   conftest.c >&5
+-configure:3047: $? = 0
+-configure:3056: result: yes
+-configure:3065: checking whether gcc accepts -g
+-configure:3085: gcc -c -g  conftest.c >&5
+-configure:3085: $? = 0
+-configure:3126: result: yes
+-configure:3143: checking for gcc option to accept ISO C89
+-configure:3207: gcc  -c -g -O2  conftest.c >&5
+-configure:3207: $? = 0
+-configure:3220: result: none needed
+-configure:3246: checking how to run the C preprocessor
+-configure:3277: gcc -E  conftest.c
+-configure:3277: $? = 0
+-configure:3291: gcc -E  conftest.c
+-conftest.c:9:28: fatal error: ac_nonexistent.h: No such file or directory
+- #include <ac_nonexistent.h>
+-                            ^
++configure:2770: $? = 1
++configure:2790: checking whether the C compiler works
++configure:2812: gcc    conftest.c  >&5
++configure:2816: $? = 0
++configure:2864: result: yes
++configure:2867: checking for C compiler default output file name
++configure:2869: result: a.out
++configure:2875: checking for suffix of executables
++configure:2882: gcc -o conftest    conftest.c  >&5
++configure:2886: $? = 0
++configure:2908: result: 
++configure:2930: checking whether we are cross compiling
++configure:2938: gcc -o conftest    conftest.c  >&5
++configure:2942: $? = 0
++configure:2949: ./conftest
++configure:2953: $? = 0
++configure:2941: result: no
++configure:2946: checking for suffix of object files
++configure:2968: gcc -c   conftest.c >&5
++configure:2972: $? = 0
++configure:2993: result: o
++configure:2997: checking whether we are using the GNU C compiler
++configure:3016: gcc -c   conftest.c >&5
++configure:3016: $? = 0
++configure:3025: result: yes
++configure:3034: checking whether gcc accepts -g
++configure:3054: gcc -c -g  conftest.c >&5
++configure:3054: $? = 0
++configure:3095: result: yes
++configure:3112: checking for gcc option to accept ISO C89
++configure:3176: gcc  -c -g -O2  conftest.c >&5
++configure:3176: $? = 0
++configure:3189: result: none needed
++configure:3215: checking how to run the C preprocessor
++configure:3246: gcc -E  conftest.c
++configure:3246: $? = 0
++configure:3260: gcc -E  conftest.c
++conftest.c:9:10: fatal error: ac_nonexistent.h: No such file or directory
++    9 | #include <ac_nonexistent.h>
++      |          ^~~~~~~~~~~~~~~~~~
+ compilation terminated.
+-configure:3291: $? = 1
++configure:3260: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -123,15 +132,15 @@
+ | #define PACKAGE_URL ""
+ | /* end confdefs.h.  */
+ | #include <ac_nonexistent.h>
+-configure:3316: result: gcc -E
+-configure:3336: gcc -E  conftest.c
+-configure:3336: $? = 0
+-configure:3350: gcc -E  conftest.c
+-conftest.c:9:28: fatal error: ac_nonexistent.h: No such file or directory
+- #include <ac_nonexistent.h>
+-                            ^
++configure:3285: result: gcc -E
++configure:3305: gcc -E  conftest.c
++configure:3305: $? = 0
++configure:3319: gcc -E  conftest.c
++conftest.c:9:10: fatal error: ac_nonexistent.h: No such file or directory
++    9 | #include <ac_nonexistent.h>
++      |          ^~~~~~~~~~~~~~~~~~
+ compilation terminated.
+-configure:3350: $? = 1
++configure:3319: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -142,61 +151,61 @@
+ | #define PACKAGE_URL ""
+ | /* end confdefs.h.  */
+ | #include <ac_nonexistent.h>
+-configure:3379: checking for grep that handles long lines and -e
+-configure:3437: result: /bin/grep
+-configure:3442: checking for egrep
+-configure:3504: result: /bin/grep -E
+-configure:3509: checking for ANSI C header files
+-configure:3529: gcc -c -g -O2  conftest.c >&5
+-configure:3529: $? = 0
+-configure:3602: gcc -o conftest -g -O2   conftest.c  >&5
+-configure:3602: $? = 0
+-configure:3602: ./conftest
+-configure:3602: $? = 0
+-configure:3613: result: yes
+-configure:3626: checking for sys/types.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for sys/stat.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for stdlib.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for string.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for memory.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for strings.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for inttypes.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for stdint.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3626: checking for unistd.h
+-configure:3626: gcc -c -g -O2  conftest.c >&5
+-configure:3626: $? = 0
+-configure:3626: result: yes
+-configure:3639: checking minix/config.h usability
+-configure:3639: gcc -c -g -O2  conftest.c >&5
+-conftest.c:52:26: fatal error: minix/config.h: No such file or directory
+- #include <minix/config.h>
+-                          ^
++configure:3348: checking for grep that handles long lines and -e
++configure:3406: result: /bin/grep
++configure:3411: checking for egrep
++configure:3473: result: /bin/grep -E
++configure:3478: checking for ANSI C header files
++configure:3498: gcc -c -g -O2  conftest.c >&5
++configure:3498: $? = 0
++configure:3571: gcc -o conftest -g -O2   conftest.c  >&5
++configure:3571: $? = 0
++configure:3571: ./conftest
++configure:3571: $? = 0
++configure:3582: result: yes
++configure:3595: checking for sys/types.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for sys/stat.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for stdlib.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for string.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for memory.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for strings.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for inttypes.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for stdint.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3595: checking for unistd.h
++configure:3595: gcc -c -g -O2  conftest.c >&5
++configure:3595: $? = 0
++configure:3595: result: yes
++configure:3608: checking minix/config.h usability
++configure:3608: gcc -c -g -O2  conftest.c >&5
++conftest.c:52:10: fatal error: minix/config.h: No such file or directory
++   52 | #include <minix/config.h>
++      |          ^~~~~~~~~~~~~~~~
+ compilation terminated.
+-configure:3639: $? = 1
++configure:3608: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -250,14 +259,14 @@
+ | # include <unistd.h>
+ | #endif
+ | #include <minix/config.h>
+-configure:3639: result: no
+-configure:3639: checking minix/config.h presence
+-configure:3639: gcc -E  conftest.c
+-conftest.c:19:26: fatal error: minix/config.h: No such file or directory
+- #include <minix/config.h>
+-                          ^
++configure:3608: result: no
++configure:3608: checking minix/config.h presence
++configure:3608: gcc -E  conftest.c
++conftest.c:19:10: fatal error: minix/config.h: No such file or directory
++   19 | #include <minix/config.h>
++      |          ^~~~~~~~~~~~~~~~
+ compilation terminated.
+-configure:3639: $? = 1
++configure:3608: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -278,101 +287,105 @@
+ | #define HAVE_UNISTD_H 1
+ | /* end confdefs.h.  */
+ | #include <minix/config.h>
+-configure:3639: result: no
+-configure:3639: checking for minix/config.h
+-configure:3639: result: no
+-configure:3660: checking whether it is safe to define __EXTENSIONS__
+-configure:3678: gcc -c -g -O2  conftest.c >&5
+-configure:3678: $? = 0
+-configure:3685: result: yes
+-configure:3811: checking build system type
+-configure:3825: result: x86_64-unknown-linux-gnu
+-configure:3845: checking host system type
+-configure:3858: result: x86_64-unknown-linux-gnu
+-configure:3878: checking target system type
+-configure:3891: result: x86_64-unknown-linux-gnu
+-configure:3967: checking for gcc
+-configure:3994: result: gcc
+-configure:4223: checking for C compiler version
+-configure:4232: gcc --version >&5
+-gcc (Ubuntu 4.8.2-19ubuntu1) 4.8.2
+-Copyright (C) 2013 Free Software Foundation, Inc.
++configure:3608: result: no
++configure:3608: checking for minix/config.h
++configure:3608: result: no
++configure:3629: checking whether it is safe to define __EXTENSIONS__
++configure:3647: gcc -c -g -O2  conftest.c >&5
++configure:3647: $? = 0
++configure:3654: result: yes
++configure:3780: checking build system type
++configure:3794: result: x86_64-unknown-linux-gnu
++configure:3814: checking host system type
++configure:3827: result: x86_64-unknown-linux-gnu
++configure:3847: checking target system type
++configure:3860: result: x86_64-unknown-linux-gnu
++configure:3936: checking for gcc
++configure:3963: result: gcc
++configure:4192: checking for C compiler version
++configure:4201: gcc --version >&5
++gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
++Copyright (C) 2019 Free Software Foundation, Inc.
+ This is free software; see the source for copying conditions.  There is NO
+ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ 
+-configure:4243: $? = 0
+-configure:4232: gcc -v >&5
++configure:4212: $? = 0
++configure:4201: gcc -v >&5
+ Using built-in specs.
+ COLLECT_GCC=gcc
+-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.8/lto-wrapper
++COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/9/lto-wrapper
++OFFLOAD_TARGET_NAMES=nvptx-none:hsa
++OFFLOAD_TARGET_DEFAULT=1
+ Target: x86_64-linux-gnu
+-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.8.2-19ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.8 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.8 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-libmudflap --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.8-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
++Configured with: ../src/configure -v --with-pkgversion='Ubuntu 9.3.0-17ubuntu1~20.04' --with-bugurl=file:///usr/share/doc/gcc-9/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++,gm2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-9 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-9-HskZEa/gcc-9-9.3.0/debian/tmp-nvptx/usr,hsa --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+ Thread model: posix
+-gcc version 4.8.2 (Ubuntu 4.8.2-19ubuntu1) 
+-configure:4243: $? = 0
+-configure:4232: gcc -V >&5
++gcc version 9.3.0 (Ubuntu 9.3.0-17ubuntu1~20.04) 
++configure:4212: $? = 0
++configure:4201: gcc -V >&5
+ gcc: error: unrecognized command line option '-V'
+ gcc: fatal error: no input files
+ compilation terminated.
+-configure:4243: $? = 4
+-configure:4232: gcc -qversion >&5
+-gcc: error: unrecognized command line option '-qversion'
++configure:4212: $? = 1
++configure:4201: gcc -qversion >&5
++gcc: error: unrecognized command line option '-qversion'; did you mean '--version'?
+ gcc: fatal error: no input files
+ compilation terminated.
+-configure:4243: $? = 4
+-configure:4247: checking whether we are using the GNU C compiler
+-configure:4275: result: yes
+-configure:4284: checking whether gcc accepts -g
+-configure:4345: result: yes
+-configure:4362: checking for gcc option to accept ISO C89
+-configure:4439: result: none needed
+-configure:4517: checking for g++
+-configure:4533: found /usr/bin/g++
+-configure:4544: result: g++
+-configure:4571: checking for C++ compiler version
+-configure:4580: g++ --version >&5
+-g++ (Ubuntu 4.8.2-19ubuntu1) 4.8.2
+-Copyright (C) 2013 Free Software Foundation, Inc.
++configure:4212: $? = 1
++configure:4216: checking whether we are using the GNU C compiler
++configure:4244: result: yes
++configure:4253: checking whether gcc accepts -g
++configure:4314: result: yes
++configure:4331: checking for gcc option to accept ISO C89
++configure:4408: result: none needed
++configure:4486: checking for g++
++configure:4502: found /usr/bin/g++
++configure:4513: result: g++
++configure:4540: checking for C++ compiler version
++configure:4549: g++ --version >&5
++g++ (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
++Copyright (C) 2019 Free Software Foundation, Inc.
+ This is free software; see the source for copying conditions.  There is NO
+ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ 
+-configure:4591: $? = 0
+-configure:4580: g++ -v >&5
++configure:4560: $? = 0
++configure:4549: g++ -v >&5
+ Using built-in specs.
+ COLLECT_GCC=g++
+-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.8/lto-wrapper
++COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/9/lto-wrapper
++OFFLOAD_TARGET_NAMES=nvptx-none:hsa
++OFFLOAD_TARGET_DEFAULT=1
+ Target: x86_64-linux-gnu
+-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.8.2-19ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.8 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.8 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-libmudflap --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.8-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
++Configured with: ../src/configure -v --with-pkgversion='Ubuntu 9.3.0-17ubuntu1~20.04' --with-bugurl=file:///usr/share/doc/gcc-9/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++,gm2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-9 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-9-HskZEa/gcc-9-9.3.0/debian/tmp-nvptx/usr,hsa --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+ Thread model: posix
+-gcc version 4.8.2 (Ubuntu 4.8.2-19ubuntu1) 
+-configure:4591: $? = 0
+-configure:4580: g++ -V >&5
++gcc version 9.3.0 (Ubuntu 9.3.0-17ubuntu1~20.04) 
++configure:4560: $? = 0
++configure:4549: g++ -V >&5
+ g++: error: unrecognized command line option '-V'
+ g++: fatal error: no input files
+ compilation terminated.
+-configure:4591: $? = 4
+-configure:4580: g++ -qversion >&5
+-g++: error: unrecognized command line option '-qversion'
++configure:4560: $? = 1
++configure:4549: g++ -qversion >&5
++g++: error: unrecognized command line option '-qversion'; did you mean '--version'?
+ g++: fatal error: no input files
+ compilation terminated.
+-configure:4591: $? = 4
+-configure:4595: checking whether we are using the GNU C++ compiler
+-configure:4614: g++ -c   conftest.cpp >&5
+-configure:4614: $? = 0
+-configure:4623: result: yes
+-configure:4632: checking whether g++ accepts -g
+-configure:4652: g++ -c -g  conftest.cpp >&5
+-configure:4652: $? = 0
+-configure:4693: result: yes
+-configure:4716: checking for ANSI C header files
+-configure:4820: result: yes
+-configure:4830: checking for string.h
+-configure:4830: result: yes
+-configure:4850: checking for main in -lXbsd
+-configure:4869: gcc -o conftest -g -O2   conftest.c -lXbsd   >&5
++configure:4560: $? = 1
++configure:4564: checking whether we are using the GNU C++ compiler
++configure:4583: g++ -c   conftest.cpp >&5
++configure:4583: $? = 0
++configure:4592: result: yes
++configure:4601: checking whether g++ accepts -g
++configure:4621: g++ -c -g  conftest.cpp >&5
++configure:4621: $? = 0
++configure:4662: result: yes
++configure:4685: checking for ANSI C header files
++configure:4789: result: yes
++configure:4799: checking for string.h
++configure:4799: result: yes
++configure:4819: checking for main in -lXbsd
++configure:4838: gcc -o conftest -g -O2   conftest.c -lXbsd   >&5
+ /usr/bin/ld: cannot find -lXbsd
+ collect2: error: ld returned 1 exit status
+-configure:4869: $? = 1
++configure:4838: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -408,12 +421,12 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:4878: result: no
+-configure:4884: checking for socket in -lsocket
+-configure:4909: gcc -o conftest -g -O2   conftest.c -lsocket   >&5
++configure:4847: result: no
++configure:4853: checking for socket in -lsocket
++configure:4878: gcc -o conftest -g -O2   conftest.c -lsocket   >&5
+ /usr/bin/ld: cannot find -lsocket
+ collect2: error: ld returned 1 exit status
+-configure:4909: $? = 1
++configure:4878: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -455,19 +468,19 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:4918: result: no
+-configure:4924: checking for gethostbyname in -lnsl
+-configure:4949: gcc -o conftest -g -O2   conftest.c -lnsl   >&5
+-configure:4949: $? = 0
+-configure:4958: result: yes
+-configure:4964: checking for dcgettext in -lintl
+-configure:4989: gcc -o conftest -g -O2   conftest.c -lintl   >&5
+-conftest.c:33:6: warning: conflicting types for built-in function 'dcgettext' [enabled by default]
+- char dcgettext ();
+-      ^
++configure:4887: result: no
++configure:4893: checking for gethostbyname in -lnsl
++configure:4918: gcc -o conftest -g -O2   conftest.c -lnsl   >&5
++configure:4918: $? = 0
++configure:4927: result: yes
++configure:4933: checking for dcgettext in -lintl
++configure:4958: gcc -o conftest -g -O2   conftest.c -lintl   >&5
++conftest.c:33:6: warning: conflicting types for built-in function 'dcgettext'; expected 'char *(const char *, const char *, int)' [-Wbuiltin-declaration-mismatch]
++   33 | char dcgettext ();
++      |      ^~~~~~~~~
+ /usr/bin/ld: cannot find -lintl
+ collect2: error: ld returned 1 exit status
+-configure:4989: $? = 1
++configure:4958: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -509,12 +522,12 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:4998: result: no
+-configure:5004: checking for getnodebyname in -ldnet_stub
+-configure:5029: gcc -o conftest -g -O2   conftest.c -ldnet_stub   >&5
++configure:4967: result: no
++configure:4973: checking for getnodebyname in -ldnet_stub
++configure:4998: gcc -o conftest -g -O2   conftest.c -ldnet_stub   >&5
+ /usr/bin/ld: cannot find -ldnet_stub
+ collect2: error: ld returned 1 exit status
+-configure:5029: $? = 1
++configure:4998: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -556,23 +569,77 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:5038: result: no
+-configure:5084: checking that g++ can handle -O2
+-configure:5105: gcc -c -g -O2  conftest.c >&5
+-configure:5105: $? = 0
+-configure:5106: result: yes
+-configure:5226: checking if C++ libraries work without any namespace
+-configure:5242: g++ -c -g -O2  conftest.cpp >&5
++configure:5007: result: no
++configure:5053: checking that g++ can handle -O2
++configure:5074: gcc -c -g -O2  conftest.c >&5
++conftest.c: In function 'main':
++conftest.c:32:3: error: 'error' undeclared (first use in this function)
++   32 |   error
++      |   ^~~~~
++conftest.c:32:3: note: each undeclared identifier is reported only once for each function it appears in
++conftest.c:32:8: error: expected ';' before 'int'
++   32 |   error
++      |        ^
++      |        ;
++......
++   36 |   int error;
++      |   ~~~   
++configure:5074: $? = 1
++configure: failed program was:
++| /* confdefs.h */
++| #define PACKAGE_NAME ""
++| #define PACKAGE_TARNAME ""
++| #define PACKAGE_VERSION ""
++| #define PACKAGE_STRING ""
++| #define PACKAGE_BUGREPORT ""
++| #define PACKAGE_URL ""
++| #define STDC_HEADERS 1
++| #define HAVE_SYS_TYPES_H 1
++| #define HAVE_SYS_STAT_H 1
++| #define HAVE_STDLIB_H 1
++| #define HAVE_STRING_H 1
++| #define HAVE_MEMORY_H 1
++| #define HAVE_STRINGS_H 1
++| #define HAVE_INTTYPES_H 1
++| #define HAVE_STDINT_H 1
++| #define HAVE_UNISTD_H 1
++| #define __EXTENSIONS__ 1
++| #define _ALL_SOURCE 1
++| #define _GNU_SOURCE 1
++| #define _POSIX_PTHREAD_SEMANTICS 1
++| #define _TANDEM_SOURCE 1
++| #define STDC_HEADERS 1
++| #define HAVE_STRING_H 1
++| /* end confdefs.h.  */
++| 
++| int
++| main ()
++| {
++| #if __GNUC__ < 2  || __GNUC_MINOR__ < 8
++| 		/* gcc */
++| 		error
++| 		#endif
++| 		#if __GNUC_MINOR__ < 92
++| 		/* egcs */
++| 		int error;
++| 		#endif
++| 
++|   ;
++|   return 0;
++| }
++configure:5080: result: no
++configure:5195: checking if C++ libraries work without any namespace
++configure:5211: g++ -c -g -O2  conftest.cpp >&5
+ conftest.cpp: In function 'int main()':
+-conftest.cpp:31:1: error: 'cout' was not declared in this scope
+- cout.fail();
+- ^
+-conftest.cpp:31:1: note: suggested alternative:
+-In file included from conftest.cpp:26:0:
+-/usr/include/c++/4.8/iostream:61:18: note:   'std::cout'
+-   extern ostream cout;  /// Linked to standard output
+-                  ^
+-configure:5242: $? = 1
++conftest.cpp:31:1: error: 'cout' was not declared in this scope; did you mean 'std::cout'?
++   31 | cout.fail();
++      | ^~~~
++      | std::cout
++In file included from conftest.cpp:26:
++/usr/include/c++/9/iostream:61:18: note: 'std::cout' declared here
++   61 |   extern ostream cout;  /// Linked to standard output
++      |                  ^~~~
++configure:5211: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -609,28 +676,27 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:5248: result: no
+-configure:5256: checking if C++ libraries work with namespace std
+-configure:5272: g++ -c -g -O2  conftest.cpp >&5
+-configure:5272: $? = 0
+-configure:5273: result: yes
+-configure:5287: checking if STL works without any namespace
+-configure:5302: g++ -c -g -O2  conftest.cpp >&5
++configure:5217: result: no
++configure:5225: checking if C++ libraries work with namespace std
++configure:5241: g++ -c -g -O2  conftest.cpp >&5
++configure:5241: $? = 0
++configure:5242: result: yes
++configure:5256: checking if STL works without any namespace
++configure:5271: g++ -c -g -O2  conftest.cpp >&5
+ conftest.cpp: In function 'int main()':
+-conftest.cpp:31:1: error: 'list' was not declared in this scope
+- list<int> test;
+- ^
+-conftest.cpp:31:1: note: suggested alternative:
+-In file included from /usr/include/c++/4.8/list:63:0,
++conftest.cpp:31:1: error: 'list' was not declared in this scope; did you mean 'std::__cxx11::list'?
++   31 | list<int> test;
++      | ^~~~
++      | std::__cxx11::list
++In file included from /usr/include/c++/9/list:63,
+                  from conftest.cpp:26:
+-/usr/include/c++/4.8/bits/stl_list.h:438:11: note:   'std::list'
+-     class list : protected _List_base<_Tp, _Alloc>
+-           ^
++/usr/include/c++/9/bits/stl_list.h:552:11: note: 'std::__cxx11::list' declared here
++  552 |     class list : protected _List_base<_Tp, _Alloc>
++      |           ^~~~
+ conftest.cpp:31:6: error: expected primary-expression before 'int'
+- list<int> test;
+-      ^
+-conftest.cpp:31:6: error: expected ';' before 'int'
+-configure:5302: $? = 1
++   31 | list<int> test;
++      |      ^~~
++configure:5271: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -667,145 +733,145 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:5308: result: no
+-configure:5316: checking if STL works with namespace std
+-configure:5332: g++ -c -g -O2  conftest.cpp >&5
+-configure:5332: $? = 0
+-configure:5333: result: yes
+-configure:5383: checking should use STL
+-configure:5407: result: yes
+-configure:5653: checking for tcl.h
+-configure:5704: result: -I../include
+-configure:5710: checking for tclInt.h
+-configure:5761: result: -I../include
+-configure:5767: checking for libtcl8.5
+-configure:5829: result: -L../lib -ltcl8.5
+-configure:5835: checking for init.tcl
+-configure:5872: result: ../lib/tcl8.5
+-configure:5890: checking for http.tcl
+-configure:5927: result: ../lib/tcl8.5/http1.0
+-configure:5932: checking Tcl http.tcl library
+-configure:5936: result: yes
+-configure:5957: checking for tclsh8.5.10
+-configure:5990: result: no
+-configure:5957: checking for tclsh8.5
+-configure:5975: found ../bin/tclsh8.5
+-configure:5987: result: ../bin/tclsh8.5
+-configure:6218: checking for tk.h
+-configure:6269: result: -I../include
+-configure:6275: checking for libtk8.5
+-configure:6337: result: -L../lib -ltk8.5
+-configure:6343: checking for tk.tcl
+-configure:6380: result: ../lib/tk8.5
+-configure:6468: checking for otcl.h
+-configure:6519: result: -I../otcl-1.14
+-configure:6525: checking for libotcl1.14
+-configure:6587: result: -L../otcl-1.14 -lotcl
+-configure:6700: checking for tclcl.h
+-configure:6751: result: -I../tclcl-1.20
+-configure:6757: checking for libtclcl
+-configure:6819: result: -L../tclcl-1.20 -ltclcl
+-configure:6825: checking for tcl2c++
+-configure:6862: result: ../tclcl-1.20
+-configure:7048: gcc -E  conftest.c
+-configure:7048: $? = 0
+-configure:7074: checking for XOpenDisplay in -lX11
+-configure:7099: gcc -o conftest -g -O2   conftest.c -lX11   >&5
+-configure:7099: $? = 0
+-configure:7108: result: yes
+-configure:7134: checking for XShmAttach in -lXext
+-configure:7159: gcc -o conftest -g -O2   conftest.c -lXext -lX11  >&5
+-configure:7159: $? = 0
+-configure:7168: result: yes
+-configure:7239: checking for libtcldbg
+-configure:7282: result: no
+-configure:7381: checking dmalloc
+-configure:7383: result: not requested with --with-dmalloc
+-configure:7647: checking for perl
+-configure:7684: result: /usr/bin
++configure:5277: result: no
++configure:5285: checking if STL works with namespace std
++configure:5301: g++ -c -g -O2  conftest.cpp >&5
++configure:5301: $? = 0
++configure:5302: result: yes
++configure:5352: checking should use STL
++configure:5376: result: yes
++configure:5622: checking for tcl.h
++configure:5673: result: -I../include
++configure:5679: checking for tclInt.h
++configure:5730: result: -I../include
++configure:5736: checking for libtcl8.5
++configure:5798: result: -L../lib -ltcl8.5
++configure:5804: checking for init.tcl
++configure:5841: result: ../lib/tcl8.5
++configure:5859: checking for http.tcl
++configure:5896: result: ../lib/tcl8.5/http1.0
++configure:5901: checking Tcl http.tcl library
++configure:5905: result: yes
++configure:5926: checking for tclsh8.5.10
++configure:5959: result: no
++configure:5926: checking for tclsh8.5
++configure:5944: found ../bin/tclsh8.5
++configure:5956: result: ../bin/tclsh8.5
++configure:6187: checking for tk.h
++configure:6238: result: -I../include
++configure:6244: checking for libtk8.5
++configure:6306: result: -L../lib -ltk8.5
++configure:6312: checking for tk.tcl
++configure:6349: result: ../lib/tk8.5
++configure:6437: checking for otcl.h
++configure:6488: result: -I../otcl-1.14
++configure:6494: checking for libotcl1.14
++configure:6556: result: -L../otcl-1.14 -lotcl
++configure:6669: checking for tclcl.h
++configure:6720: result: -I../tclcl-1.20
++configure:6726: checking for libtclcl
++configure:6788: result: -L../tclcl-1.20 -ltclcl
++configure:6794: checking for tcl2c++
++configure:6831: result: ../tclcl-1.20
++configure:7017: gcc -E  conftest.c
++configure:7017: $? = 0
++configure:7043: checking for XOpenDisplay in -lX11
++configure:7068: gcc -o conftest -g -O2   conftest.c -lX11   >&5
++configure:7068: $? = 0
++configure:7077: result: yes
++configure:7103: checking for XShmAttach in -lXext
++configure:7128: gcc -o conftest -g -O2   conftest.c -lXext -lX11  >&5
++configure:7128: $? = 0
++configure:7137: result: yes
++configure:7208: checking for libtcldbg
++configure:7251: result: no
++configure:7350: checking dmalloc
++configure:7352: result: not requested with --with-dmalloc
++configure:7616: checking for perl
++configure:7653: result: /usr/bin
+ /usr/bin/perl -e require 5.002
+-configure:7789: checking for ANSI C header files
+-configure:7893: result: yes
+-configure:7905: checking arpa/inet.h usability
+-configure:7905: gcc -c -g -O2  conftest.c >&5
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking arpa/inet.h presence
+-configure:7905: gcc -E  conftest.c
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking for arpa/inet.h
+-configure:7905: result: yes
+-configure:7905: checking fenv.h usability
+-configure:7905: gcc -c -g -O2  conftest.c >&5
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking fenv.h presence
+-configure:7905: gcc -E  conftest.c
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking for fenv.h
+-configure:7905: result: yes
+-configure:7905: checking netinet/in.h usability
+-configure:7905: gcc -c -g -O2  conftest.c >&5
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking netinet/in.h presence
+-configure:7905: gcc -E  conftest.c
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking for netinet/in.h
+-configure:7905: result: yes
+-configure:7905: checking for string.h
+-configure:7905: result: yes
+-configure:7905: checking for strings.h
+-configure:7905: result: yes
+-configure:7905: checking time.h usability
+-configure:7905: gcc -c -g -O2  conftest.c >&5
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking time.h presence
+-configure:7905: gcc -E  conftest.c
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking for time.h
+-configure:7905: result: yes
+-configure:7905: checking for unistd.h
+-configure:7905: result: yes
+-configure:7905: checking net/ethernet.h usability
+-configure:7905: gcc -c -g -O2  conftest.c >&5
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking net/ethernet.h presence
+-configure:7905: gcc -E  conftest.c
+-configure:7905: $? = 0
+-configure:7905: result: yes
+-configure:7905: checking for net/ethernet.h
+-configure:7905: result: yes
+-configure:7915: checking for main in -lm
+-configure:7934: gcc -o conftest -g -O2   conftest.c -lm   >&5
+-configure:7934: $? = 0
+-configure:7943: result: yes
+-configure:7959: checking for bcopy
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-conftest.c:70:6: warning: conflicting types for built-in function 'bcopy' [enabled by default]
+- char bcopy ();
+-      ^
+-configure:7959: $? = 0
+-configure:7959: result: yes
+-configure:7959: checking for bzero
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-conftest.c:71:6: warning: conflicting types for built-in function 'bzero' [enabled by default]
+- char bzero ();
+-      ^
+-configure:7959: $? = 0
+-configure:7959: result: yes
+-configure:7959: checking for fesetprecision
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-/tmp/cct2Dd4J.o: In function `main':
+-/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/conftest.c:83: undefined reference to `fesetprecision'
++configure:7758: checking for ANSI C header files
++configure:7862: result: yes
++configure:7874: checking arpa/inet.h usability
++configure:7874: gcc -c -g -O2  conftest.c >&5
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking arpa/inet.h presence
++configure:7874: gcc -E  conftest.c
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking for arpa/inet.h
++configure:7874: result: yes
++configure:7874: checking fenv.h usability
++configure:7874: gcc -c -g -O2  conftest.c >&5
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking fenv.h presence
++configure:7874: gcc -E  conftest.c
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking for fenv.h
++configure:7874: result: yes
++configure:7874: checking netinet/in.h usability
++configure:7874: gcc -c -g -O2  conftest.c >&5
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking netinet/in.h presence
++configure:7874: gcc -E  conftest.c
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking for netinet/in.h
++configure:7874: result: yes
++configure:7874: checking for string.h
++configure:7874: result: yes
++configure:7874: checking for strings.h
++configure:7874: result: yes
++configure:7874: checking time.h usability
++configure:7874: gcc -c -g -O2  conftest.c >&5
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking time.h presence
++configure:7874: gcc -E  conftest.c
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking for time.h
++configure:7874: result: yes
++configure:7874: checking for unistd.h
++configure:7874: result: yes
++configure:7874: checking net/ethernet.h usability
++configure:7874: gcc -c -g -O2  conftest.c >&5
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking net/ethernet.h presence
++configure:7874: gcc -E  conftest.c
++configure:7874: $? = 0
++configure:7874: result: yes
++configure:7874: checking for net/ethernet.h
++configure:7874: result: yes
++configure:7884: checking for main in -lm
++configure:7903: gcc -o conftest -g -O2   conftest.c -lm   >&5
++configure:7903: $? = 0
++configure:7912: result: yes
++configure:7928: checking for bcopy
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++conftest.c:70:6: warning: conflicting types for built-in function 'bcopy'; expected 'void(const void *, void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
++   70 | char bcopy ();
++      |      ^~~~~
++configure:7928: $? = 0
++configure:7928: result: yes
++configure:7928: checking for bzero
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++conftest.c:71:6: warning: conflicting types for built-in function 'bzero'; expected 'void(void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
++   71 | char bzero ();
++      |      ^~~~~
++configure:7928: $? = 0
++configure:7928: result: yes
++configure:7928: checking for fesetprecision
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++/usr/bin/ld: /tmp/cctWVJOn.o: in function `main':
++/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/ns-2.35/conftest.c:83: undefined reference to `fesetprecision'
+ collect2: error: ld returned 1 exit status
+-configure:7959: $? = 1
++configure:7928: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -893,41 +959,47 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:7959: result: no
+-configure:7959: checking for feenableexcept
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:7959: $? = 0
+-configure:7959: result: yes
+-configure:7959: checking for getrusage
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:7959: $? = 0
+-configure:7959: result: yes
+-configure:7959: checking for sbrk
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:7959: $? = 0
+-configure:7959: result: yes
+-configure:7959: checking for snprintf
+-configure:7959: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-conftest.c:75:6: warning: conflicting types for built-in function 'snprintf' [enabled by default]
+- char snprintf ();
+-      ^
+-configure:7959: $? = 0
+-configure:7959: result: yes
+-configure:7969: checking return type of random
+-configure:7987: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:7987: $? = 0
+-configure:7987: ./conftest
+-configure:7987: $? = 0
+-configure:7988: result: long
+-configure:8005: checking for int8_t
+-configure:8005: gcc -c -g -O2  conftest.c >&5
+-configure:8005: $? = 0
+-configure:8005: gcc -c -g -O2  conftest.c >&5
++configure:7928: result: no
++configure:7928: checking for feenableexcept
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:7928: $? = 0
++configure:7928: result: yes
++configure:7928: checking for getrusage
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:7928: $? = 0
++configure:7928: result: yes
++configure:7928: checking for sbrk
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:7928: $? = 0
++configure:7928: result: yes
++configure:7928: checking for snprintf
++configure:7928: gcc -o conftest -g -O2   conftest.c -lm  >&5
++conftest.c:75:6: warning: conflicting types for built-in function 'snprintf'; expected 'int(char *, long unsigned int,  const char *, ...)' [-Wbuiltin-declaration-mismatch]
++   75 | char snprintf ();
++      |      ^~~~~~~~
++conftest.c:63:1: note: 'snprintf' is declared in header '<stdio.h>'
++   62 | # include <limits.h>
++   63 | #else
++configure:7928: $? = 0
++configure:7928: result: yes
++configure:7938: checking return type of random
++configure:7956: gcc -o conftest -g -O2   conftest.c -lm  >&5
++conftest.c:56:1: warning: return type defaults to 'int' [-Wimplicit-int]
++   56 | main() { exit(0); }
++      | ^~~~
++configure:7956: $? = 0
++configure:7956: ./conftest
++configure:7956: $? = 0
++configure:7957: result: long
++configure:7974: checking for int8_t
++configure:7974: gcc -c -g -O2  conftest.c >&5
++configure:7974: $? = 0
++configure:7974: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:21: error: expected expression before ')' token
+- if (sizeof ((int8_t)))
+-                     ^
+-configure:8005: $? = 1
++   90 | if (sizeof ((int8_t)))
++      |                     ^
++configure:7974: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1023,16 +1095,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8005: result: yes
+-configure:8016: checking for int16_t
+-configure:8016: gcc -c -g -O2  conftest.c >&5
+-configure:8016: $? = 0
+-configure:8016: gcc -c -g -O2  conftest.c >&5
++configure:7974: result: yes
++configure:7985: checking for int16_t
++configure:7985: gcc -c -g -O2  conftest.c >&5
++configure:7985: $? = 0
++configure:7985: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:22: error: expected expression before ')' token
+- if (sizeof ((int16_t)))
+-                      ^
+-configure:8016: $? = 1
++   90 | if (sizeof ((int16_t)))
++      |                      ^
++configure:7985: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1128,16 +1200,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8016: result: yes
+-configure:8027: checking for int32_t
+-configure:8027: gcc -c -g -O2  conftest.c >&5
+-configure:8027: $? = 0
+-configure:8027: gcc -c -g -O2  conftest.c >&5
++configure:7985: result: yes
++configure:7996: checking for int32_t
++configure:7996: gcc -c -g -O2  conftest.c >&5
++configure:7996: $? = 0
++configure:7996: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:22: error: expected expression before ')' token
+- if (sizeof ((int32_t)))
+-                      ^
+-configure:8027: $? = 1
++   90 | if (sizeof ((int32_t)))
++      |                      ^
++configure:7996: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1233,16 +1305,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8027: result: yes
+-configure:8038: checking for u_int8_t
+-configure:8038: gcc -c -g -O2  conftest.c >&5
+-configure:8038: $? = 0
+-configure:8038: gcc -c -g -O2  conftest.c >&5
++configure:7996: result: yes
++configure:8007: checking for u_int8_t
++configure:8007: gcc -c -g -O2  conftest.c >&5
++configure:8007: $? = 0
++configure:8007: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:23: error: expected expression before ')' token
+- if (sizeof ((u_int8_t)))
+-                       ^
+-configure:8038: $? = 1
++   90 | if (sizeof ((u_int8_t)))
++      |                       ^
++configure:8007: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1338,16 +1410,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8038: result: yes
+-configure:8049: checking for u_int16_t
+-configure:8049: gcc -c -g -O2  conftest.c >&5
+-configure:8049: $? = 0
+-configure:8049: gcc -c -g -O2  conftest.c >&5
++configure:8007: result: yes
++configure:8018: checking for u_int16_t
++configure:8018: gcc -c -g -O2  conftest.c >&5
++configure:8018: $? = 0
++configure:8018: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:24: error: expected expression before ')' token
+- if (sizeof ((u_int16_t)))
+-                        ^
+-configure:8049: $? = 1
++   90 | if (sizeof ((u_int16_t)))
++      |                        ^
++configure:8018: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1443,16 +1515,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8049: result: yes
+-configure:8060: checking for u_int32_t
+-configure:8060: gcc -c -g -O2  conftest.c >&5
+-configure:8060: $? = 0
+-configure:8060: gcc -c -g -O2  conftest.c >&5
++configure:8018: result: yes
++configure:8029: checking for u_int32_t
++configure:8029: gcc -c -g -O2  conftest.c >&5
++configure:8029: $? = 0
++configure:8029: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:24: error: expected expression before ')' token
+- if (sizeof ((u_int32_t)))
+-                        ^
+-configure:8060: $? = 1
++   90 | if (sizeof ((u_int32_t)))
++      |                        ^
++configure:8029: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1548,16 +1620,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8060: result: yes
+-configure:8071: checking for u_char
+-configure:8071: gcc -c -g -O2  conftest.c >&5
+-configure:8071: $? = 0
+-configure:8071: gcc -c -g -O2  conftest.c >&5
++configure:8029: result: yes
++configure:8040: checking for u_char
++configure:8040: gcc -c -g -O2  conftest.c >&5
++configure:8040: $? = 0
++configure:8040: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:21: error: expected expression before ')' token
+- if (sizeof ((u_char)))
+-                     ^
+-configure:8071: $? = 1
++   90 | if (sizeof ((u_char)))
++      |                     ^
++configure:8040: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1653,16 +1725,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8071: result: yes
+-configure:8082: checking for u_int
+-configure:8082: gcc -c -g -O2  conftest.c >&5
+-configure:8082: $? = 0
+-configure:8082: gcc -c -g -O2  conftest.c >&5
++configure:8040: result: yes
++configure:8051: checking for u_int
++configure:8051: gcc -c -g -O2  conftest.c >&5
++configure:8051: $? = 0
++configure:8051: gcc -c -g -O2  conftest.c >&5
+ conftest.c: In function 'main':
+ conftest.c:90:20: error: expected expression before ')' token
+- if (sizeof ((u_int)))
+-                    ^
+-configure:8082: $? = 1
++   90 | if (sizeof ((u_int)))
++      |                    ^
++configure:8051: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1758,35 +1830,43 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8082: result: yes
+-configure:8098: checking for strtoq
+-configure:8098: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:8098: $? = 0
+-configure:8098: result: yes
+-configure:8098: checking for strtoll
+-configure:8098: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:8098: $? = 0
+-configure:8098: result: yes
+-configure:8116: checking size of long
+-configure:8121: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:8121: $? = 0
+-configure:8121: ./conftest
+-configure:8121: $? = 0
+-configure:8135: result: 8
+-configure:8148: checking for strtol
+-configure:8148: gcc -o conftest -g -O2   conftest.c -lm  >&5
+-configure:8148: $? = 0
+-configure:8148: result: yes
+-configure:8155: checking for __int64_t
+-configure:8170: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:8051: result: yes
++configure:8067: checking for strtoq
++configure:8067: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:8067: $? = 0
++configure:8067: result: yes
++configure:8067: checking for strtoll
++configure:8067: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:8067: $? = 0
++configure:8067: result: yes
++configure:8085: checking size of long
++configure:8090: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:8090: $? = 0
++configure:8090: ./conftest
++configure:8090: $? = 0
++configure:8104: result: 8
++configure:8117: checking for strtol
++configure:8117: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:8117: $? = 0
++configure:8117: result: yes
++configure:8124: checking for __int64_t
++configure:8139: gcc -o conftest -g -O2   conftest.c -lm  >&5
++conftest.c:58:1: warning: return type defaults to 'int' [-Wimplicit-int]
++   58 | main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
++      | ^~~~
+ conftest.c: In function 'main':
+-conftest.c:58:10: error: unknown type name '__int64_t'
+- main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
+-          ^
+-conftest.c:58:23: warning: incompatible implicit declaration of built-in function 'exit' [enabled by default]
+- main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
+-                       ^
+-configure:8170: $? = 1
++conftest.c:58:10: error: unknown type name '__int64_t'; did you mean '__int128_t'?
++   58 | main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
++      |          ^~~~~~~~~
++      |          __int128_t
++conftest.c:58:23: warning: implicit declaration of function 'exit' [-Wimplicit-function-declaration]
++   58 | main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
++      |                       ^~~~
++conftest.c:58:23: warning: incompatible implicit declaration of built-in function 'exit'
++conftest.c:1:1: note: include '<stdlib.h>' or provide a declaration of 'exit'
++  +++ |+#include <stdlib.h>
++    1 | /* confdefs.h */
++configure:8139: $? = 1
+ configure: program exited with status 1
+ configure: failed program was:
+ | /* confdefs.h */
+@@ -1848,53 +1928,60 @@
+ | 
+ | main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
+ | 
+-configure:8180: result: no
+-configure:8186: checking for long long
+-configure:8201: gcc -o conftest -g -O2   conftest.c -lm  >&5
++configure:8149: result: no
++configure:8155: checking for long long
++configure:8170: gcc -o conftest -g -O2   conftest.c -lm  >&5
++conftest.c:58:1: warning: return type defaults to 'int' [-Wimplicit-int]
++   58 | main() { long long x; exit (sizeof(x) >= 8 ? 0 : 1); }
++      | ^~~~
+ conftest.c: In function 'main':
+-conftest.c:58:23: warning: incompatible implicit declaration of built-in function 'exit' [enabled by default]
+- main() { long long x; exit (sizeof(x) >= 8 ? 0 : 1); }
+-                       ^
+-configure:8201: $? = 0
+-configure:8201: ./conftest
+-configure:8201: $? = 0
+-configure:8211: result: yes
+-configure:8219: checking for int64_t
+-configure:8241: result: yes
+-configure:8252: checking which kind of 64-bit int to use
+-configure:8263: result: int64_t
+-configure:8336: checking system version (for dynamic loading)
+-configure:8356: result: Linux-3.13.0-53-generic
+-configure:8364: checking for dlopen in -ldl
+-configure:8389: gcc -o conftest -g -O2   conftest.c -ldl  -lm  >&5
+-configure:8389: $? = 0
+-configure:8398: result: yes
+-configure:8814: checking dlfcn.h usability
+-configure:8814: gcc -c -g -O2  conftest.c >&5
+-configure:8814: $? = 0
+-configure:8814: result: yes
+-configure:8814: checking dlfcn.h presence
+-configure:8814: gcc -E  conftest.c
+-configure:8814: $? = 0
+-configure:8814: result: yes
+-configure:8814: checking for dlfcn.h
+-configure:8814: result: yes
+-configure:8822: checking for ns library name
+-configure:8825: result: libns.so
+-configure:8835: checking for struct ether_header
+-configure:8858: gcc -c -g -O2  conftest.c >&5
+-configure:8858: $? = 0
+-configure:8862: result: found
+-configure:8874: checking for struct ether_addr
+-configure:8897: gcc -c -g -O2  conftest.c >&5
+-configure:8897: $? = 0
+-configure:8901: result: found
+-configure:8915: checking for addr2ascii
+-configure:8915: gcc -o conftest -g -O2   -Wl,-export-dynamic conftest.c -lm  >&5
+-/tmp/cc0nFj7S.o: In function `main':
+-/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/conftest.c:94: undefined reference to `addr2ascii'
++conftest.c:58:23: warning: implicit declaration of function 'exit' [-Wimplicit-function-declaration]
++   58 | main() { long long x; exit (sizeof(x) >= 8 ? 0 : 1); }
++      |                       ^~~~
++conftest.c:58:23: warning: incompatible implicit declaration of built-in function 'exit'
++conftest.c:1:1: note: include '<stdlib.h>' or provide a declaration of 'exit'
++  +++ |+#include <stdlib.h>
++    1 | /* confdefs.h */
++configure:8170: $? = 0
++configure:8170: ./conftest
++configure:8170: $? = 0
++configure:8180: result: yes
++configure:8188: checking for int64_t
++configure:8210: result: yes
++configure:8221: checking which kind of 64-bit int to use
++configure:8232: result: int64_t
++configure:8305: checking system version (for dynamic loading)
++configure:8325: result: Linux-5.4.0-65-generic
++configure:8333: checking for dlopen in -ldl
++configure:8358: gcc -o conftest -g -O2   conftest.c -ldl  -lm  >&5
++configure:8358: $? = 0
++configure:8367: result: yes
++configure:8783: checking dlfcn.h usability
++configure:8783: gcc -c -g -O2  conftest.c >&5
++configure:8783: $? = 0
++configure:8783: result: yes
++configure:8783: checking dlfcn.h presence
++configure:8783: gcc -E  conftest.c
++configure:8783: $? = 0
++configure:8783: result: yes
++configure:8783: checking for dlfcn.h
++configure:8783: result: yes
++configure:8791: checking for ns library name
++configure:8794: result: libns.so
++configure:8804: checking for struct ether_header
++configure:8827: gcc -c -g -O2  conftest.c >&5
++configure:8827: $? = 0
++configure:8831: result: found
++configure:8843: checking for struct ether_addr
++configure:8866: gcc -c -g -O2  conftest.c >&5
++configure:8866: $? = 0
++configure:8870: result: found
++configure:8884: checking for addr2ascii
++configure:8884: gcc -o conftest -g -O2   -Wl,-export-dynamic conftest.c -lm  >&5
++/usr/bin/ld: /tmp/cct3zhKw.o: in function `main':
++/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/ns-2.35/conftest.c:94: undefined reference to `addr2ascii'
+ collect2: error: ld returned 1 exit status
+-configure:8915: $? = 1
++configure:8884: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -1993,28 +2080,28 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:8915: result: no
+-configure:8940: gcc -o conftest -g -O2   -Wl,-export-dynamic conftest.c -lm  >&5
+-configure:8940: $? = 0
+-configure:8940: ./conftest
+-configure:8940: $? = 0
+-configure:8952: checking for Linux compliant tcphdr
+-configure:8976: gcc -c -g -O2  conftest.c >&5
+-configure:8976: $? = 0
+-configure:8979: result: found
+-configure:8991: checking for BSD compliant tcphdr
+-configure:9015: gcc -c -g -O2  conftest.c >&5
+-configure:9015: $? = 0
+-configure:9017: result: found
+-configure:9029: checking for socklen_t
+-configure:9047: gcc -c -g -O2  conftest.c >&5
+-configure:9047: $? = 0
+-configure:9055: result: yes
+-configure:9066: checking for main in -lpcap
+-configure:9085: gcc -o conftest -g -O2   -Wl,-export-dynamic conftest.c -lpcap  -lm  >&5
++configure:8884: result: no
++configure:8909: gcc -o conftest -g -O2   -Wl,-export-dynamic conftest.c -lm  >&5
++configure:8909: $? = 0
++configure:8909: ./conftest
++configure:8909: $? = 0
++configure:8921: checking for Linux compliant tcphdr
++configure:8945: gcc -c -g -O2  conftest.c >&5
++configure:8945: $? = 0
++configure:8948: result: found
++configure:8960: checking for BSD compliant tcphdr
++configure:8984: gcc -c -g -O2  conftest.c >&5
++configure:8984: $? = 0
++configure:8986: result: found
++configure:8998: checking for socklen_t
++configure:9016: gcc -c -g -O2  conftest.c >&5
++configure:9016: $? = 0
++configure:9024: result: yes
++configure:9035: checking for main in -lpcap
++configure:9054: gcc -o conftest -g -O2   -Wl,-export-dynamic conftest.c -lpcap  -lm  >&5
+ /usr/bin/ld: cannot find -lpcap
+ collect2: error: ld returned 1 exit status
+-configure:9085: $? = 1
++configure:9054: $? = 1
+ configure: failed program was:
+ | /* confdefs.h */
+ | #define PACKAGE_NAME ""
+@@ -2086,16 +2173,16 @@
+ |   ;
+ |   return 0;
+ | }
+-configure:9094: result: no
+-configure:9103: checking to make nse
+-configure:9111: result: no
+-configure:9159: checking for dlopen in -ldl
+-configure:9193: result: yes
+-configure:9278: checking system version (for system-dependent libraries)
+-configure:9298: result: Linux-3.13.0-53-generic
+-configure:9393: checking for a BSD-compatible install
+-configure:9461: result: /usr/bin/install -c
+-configure:9590: creating ./config.status
++configure:9063: result: no
++configure:9072: checking to make nse
++configure:9080: result: no
++configure:9128: checking for dlopen in -ldl
++configure:9162: result: yes
++configure:9247: checking system version (for system-dependent libraries)
++configure:9267: result: Linux-5.4.0-65-generic
++configure:9362: checking for a BSD-compatible install
++configure:9430: result: /usr/bin/install -c
++configure:9551: creating ./config.status
+ 
+ ## ---------------------- ##
+ ## Running config.status. ##
+@@ -2110,16 +2197,16 @@
+   CONFIG_COMMANDS = 
+   $ ./config.status 
+ 
+-on htb-1n-eng-dhcp337
++on ubuntu-desktop
+ 
+-config.status:926: creating Makefile
+-config.status:926: creating tcl/lib/ns-autoconf.tcl
+-config.status:926: creating indep-utils/webtrace-conv/ucb/Makefile
+-config.status:926: creating indep-utils/webtrace-conv/dec/Makefile
+-config.status:926: creating indep-utils/webtrace-conv/nlanr/Makefile
+-config.status:926: creating indep-utils/webtrace-conv/epa/Makefile
+-config.status:926: creating indep-utils/cmu-scen-gen/setdest/Makefile
+-config.status:926: creating autoconf.h
++config.status:924: creating Makefile
++config.status:924: creating tcl/lib/ns-autoconf.tcl
++config.status:924: creating indep-utils/webtrace-conv/ucb/Makefile
++config.status:924: creating indep-utils/webtrace-conv/dec/Makefile
++config.status:924: creating indep-utils/webtrace-conv/nlanr/Makefile
++config.status:924: creating indep-utils/webtrace-conv/epa/Makefile
++config.status:924: creating indep-utils/cmu-scen-gen/setdest/Makefile
++config.status:924: creating autoconf.h
+ 
+ ## ---------------- ##
+ ## Cache variables. ##
+@@ -2265,21 +2352,21 @@
+ V_ALL=''
+ V_AR='ar cr'
+ V_BROKEN_OBJ=''
+-V_CCOPT='-O2 -Wall -Wno-write-strings'
++V_CCOPT=' -Wall -Wno-write-strings -Wno-narrowing'
+ V_DEFINE='-DTCLCL_CLASSINSTVAR  -DNDEBUG -DLINUX_TCP_HEADER -DUSE_SHM'
+ V_DEFINES='-DHAVE_LIBTCLCL -DHAVE_TCLCL_H -DHAVE_LIBOTCL1_14 -DHAVE_OTCL_H -DHAVE_LIBTK8_5 -DHAVE_TK_H -DHAVE_LIBTCL8_5 -DHAVE_TCLINT_H -DHAVE_TCL_H '
+ V_IMPORT_LIBS=''
+ V_INCLUDE=''
+-V_INCLUDES='-I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap'
++V_INCLUDES='-I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap'
+ V_INCLUDE_X11=''
+ V_LIB=' -lnsl -ldl'
+ V_LIBRARY_TCL='../lib/tcl8.5'
+ V_LIBRARY_TK='../lib/tk8.5'
+-V_LIBS='-L/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -lotcl -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltk8.5 -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5'
+-V_LIB_OTCL='-L/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -lotcl'
+-V_LIB_TCL='-L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5'
+-V_LIB_TCLCL='-L/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -ltclcl'
+-V_LIB_TK='-L/home/nkatta/ns2/ns-allinone-2.35/lib -ltk8.5'
++V_LIBS='-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -lotcl -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltk8.5 -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5'
++V_LIB_OTCL='-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -lotcl'
++V_LIB_TCL='-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5'
++V_LIB_TCLCL='-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -ltclcl'
++V_LIB_TK='-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltk8.5'
+ V_LIB_X11='-lXext -lX11'
+ V_LSSCRIPT=''
+ V_NS_TCL_LIB_STL='$(NS_TCL_LIB_STL)'
+@@ -2294,7 +2381,7 @@
+ V_TAR_EXTRA=''
+ V_TAR_TARGET='linux-gnu'
+ V_TCL2CPP='../tclcl-1.20/tcl2c++'
+-V_TCLSH='/home/nkatta/ns2/ns-allinone-2.35/bin/tclsh8.5'
++V_TCLSH='/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/bin/tclsh8.5'
+ V_TCL_LIBRARY_FILES='$(TCL_BASE_LIBRARY_FILES) ../lib/tcl8.5/http1.0/http.tcl'
+ V_TKDOSNAMES='$(LIBRARY_TK)/optMenu.tcl $(LIBRARY_TK)/scrlbar.tcl'
+ ac_ct_CC='gcc'
+diff -ruN ns-2.35/config.status ns-2.35-1/config.status
+--- ns-2.35/config.status	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/config.status	2021-02-16 20:10:04.339210000 +0100
+@@ -445,7 +445,7 @@
+ This config.status script is free software; the Free Software Foundation
+ gives unlimited permission to copy, distribute and modify it."
+ 
+-ac_pwd='/home/nkatta/ns2/ns-allinone-2.35/ns-2.35'
++ac_pwd='/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/ns-2.35'
+ srcdir='.'
+ INSTALL='/usr/bin/install -c'
+ test -n "$AWK" || AWK=awk
+@@ -639,19 +639,21 @@
+ S["V_DEFINE"]="-DTCLCL_CLASSINSTVAR  -DNDEBUG -DLINUX_TCP_HEADER -DUSE_SHM"
+ S["V_LIB"]=" -lnsl -ldl"
+ S["V_TAR_EXTRA"]=""
+-S["V_CCOPT"]="-O2 -Wall -Wno-write-strings"
++S["V_CCOPT"]=" -Wall -Wno-write-strings -Wno-narrowing"
+ S["V_ALL"]=""
+-S["V_LIB_TK"]="-L/home/nkatta/ns2/ns-allinone-2.35/lib -ltk8.5"
+-S["V_LIB_TCL"]="-L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5"
+-S["V_LIB_OTCL"]="-L/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -lotcl"
+-S["V_LIB_TCLCL"]="-L/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -ltclcl"
++S["V_LIB_TK"]="-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltk8.5"
++S["V_LIB_TCL"]="-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5"
++S["V_LIB_OTCL"]="-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -lotcl"
++S["V_LIB_TCLCL"]="-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -ltclcl"
+ S["V_TAR_TARGET"]="linux-gnu"
+ S["V_STATIC"]=""
+ S["V_DEFINES"]="-DHAVE_LIBTCLCL -DHAVE_TCLCL_H -DHAVE_LIBOTCL1_14 -DHAVE_OTCL_H -DHAVE_LIBTK8_5 -DHAVE_TK_H -DHAVE_LIBTCL8_5 -DHAVE_TCLINT_H -DHAVE_TCL_H "
+-S["V_LIBS"]="-L/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -lotcl -L/home/nkatta/ns2/ns-allinone-2.35/lib "\
+-"-ltk8.5 -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5"
+-S["V_INCLUDES"]="-I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nka"\
+-"tta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap"
++S["V_LIBS"]="-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2."\
++"35/otcl-1.14 -lotcl -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltk8.5 -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/n"\
++"s-allinone-2.35/lib -ltcl8.5"
++S["V_INCLUDES"]="-I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-"\
++"1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/inc"\
++"lude -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap"
+ S["build_nse"]=""
+ S["NSLIB"]="libns.so"
+ S["PKG_SHLIB_CFLAGS"]=""
+@@ -670,7 +672,7 @@
+ S["V_LIBRARY_TK"]="../lib/tk8.5"
+ S["V_TKDOSNAMES"]="$(LIBRARY_TK)/optMenu.tcl $(LIBRARY_TK)/scrlbar.tcl"
+ S["V_LIBRARY_TCL"]="../lib/tcl8.5"
+-S["V_TCLSH"]="/home/nkatta/ns2/ns-allinone-2.35/bin/tclsh8.5"
++S["V_TCLSH"]="/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/bin/tclsh8.5"
+ S["V_TCL_LIBRARY_FILES"]="$(TCL_BASE_LIBRARY_FILES) ../lib/tcl8.5/http1.0/http.tcl"
+ S["CPP_NAMESPACE"]="std"
+ S["ac_ct_CXX"]="g++"
+diff -ruN ns-2.35/configure ns-2.35-1/configure
+--- ns-2.35/configure	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/configure	2021-02-16 15:20:24.425177000 +0100
+@@ -5118,14 +5118,14 @@
+ if test "$enable_debug" = "yes" ; then
+ 	V_CCOPT="-g"
+ 	if test "$CC" = gcc ; then
+-		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings -Wno-parentheses -Werror"
++		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings -Wno-parentheses -Werror -Wno-narrowing"
+ 		V_DEFINE="$V_DEFINE -fsigned-char -fno-inline"
+ 	fi
+ else
+ 	V_CCOPT="$OonS"
+ 	V_DEFINE="$V_DEFINE -DNDEBUG"
+ 	if test "$CC" = gcc ; then
+-		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings"
++		V_CCOPT="$V_CCOPT -Wall -Wno-write-strings -Wno-narrowing"
+ 	fi
+ fi
+ 
+@@ -9321,7 +9321,7 @@
+ # always use -g with gcc during development (even with -O)
+ # force noline so that we can debug all functions
+ if test "$CC" = gcc && test -f .devel ; then
+-	V_CCOPT="$V_CCOPT -g -Wall -Werror"
++	V_CCOPT="$V_CCOPT -g -Wall -Werror -Wno-narrowing"
+ 	V_DEFINE="$V_DEFINE -fsigned-char -fno-inline"
+ fi
+ 
+diff -ruN ns-2.35/hula/hdr_timp.cc ns-2.35-1/hula/hdr_timp.cc
+--- ns-2.35/hula/hdr_timp.cc	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/hdr_timp.cc	2020-12-20 14:17:46.900978000 +0100
+@@ -0,0 +1,93 @@
++
++/*
++ * hdr_qs.cc
++ * Copyright (C) 2001 by the University of Southern California
++ * $Id: hdr_qs.cc,v 1.9 2007/01/22 05:33:57 tom_henderson Exp $
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
++ *
++ *
++ * The copyright of this module includes the following
++ * linking-with-specific-other-licenses addition:
++ *
++ * In addition, as a special exception, the copyright holders of
++ * this module give you permission to combine (via static or
++ * dynamic linking) this module with free software programs or
++ * libraries that are released under the GNU LGPL and with code
++ * included in the standard release of ns-2 under the Apache 2.0
++ * license or under otherwise-compatible licenses with advertising
++ * requirements (or modified versions of such code, with unchanged
++ * license).  You may copy and distribute such a system following the
++ * terms of the GNU GPL for this module and the licenses of the
++ * other code concerned, provided that you include the source code of
++ * that other code when and as the GNU GPL requires distribution of
++ * source code.
++ *
++ * Note that people who make modified versions of this module
++ * are not obligated to grant this special exception for their
++ * modified versions; it is their choice whether to do so.  The GNU
++ * General Public License gives permission to release a modified
++ * version without this exception; this exception also makes it
++ * possible to release a modified version which carries forward this
++ * exception.
++ *
++ */
++
++/*
++ * Quick Start for TCP and IP.
++ * A scheme for transport protocols to dynamically determine initial 
++ * congestion window size.
++ *
++ * http://www.ietf.org/internet-drafts/draft-amit-quick-start-02.ps
++ *
++ * Packet header definition for Quick Start implementation
++ * hdr_qs.h
++ *
++ * Srikanth Sundarrajan, 2002
++ * sundarra@usc.edu
++ */
++ 
++ /*
++ * Topology Independent Multipath (TIMP)
++ * Routing scheme for data center networks.
++ *
++ * https://github.com/nmaksic/timp
++ *
++ * TIMP control packet header definition 
++ *
++ * Natasa Maksic, 2020
++ * maksicn@etf.bg.ac.rs 
++ */
++
++#include <stdio.h>
++#include "hdr_timp.h"
++#include <math.h>
++
++
++int hdr_timp::offset_;
++
++static class TimpHeaderClass : public PacketHeaderClass {
++public:
++	TimpHeaderClass() : PacketHeaderClass("PacketHeader/TIMP", sizeof(hdr_timp)) {
++		bind_offset(&hdr_timp::offset_);
++	}
++
++} class_timphdr;
++
++
++// Local Variables:
++// mode:c++
++// c-basic-offset: 8
++// End:
++
+diff -ruN ns-2.35/hula/hdr_timp.h ns-2.35-1/hula/hdr_timp.h
+--- ns-2.35/hula/hdr_timp.h	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/hdr_timp.h	2020-12-26 22:51:51.460812000 +0100
+@@ -0,0 +1,113 @@
++
++/*
++ * hdr_qs.h
++ * Copyright (C) 2001 by the University of Southern California
++ * $Id: hdr_qs.h,v 1.6 2005/08/25 18:58:10 johnh Exp $
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
++ *
++ *
++ * The copyright of this module includes the following
++ * linking-with-specific-other-licenses addition:
++ *
++ * In addition, as a special exception, the copyright holders of
++ * this module give you permission to combine (via static or
++ * dynamic linking) this module with free software programs or
++ * libraries that are released under the GNU LGPL and with code
++ * included in the standard release of ns-2 under the Apache 2.0
++ * license or under otherwise-compatible licenses with advertising
++ * requirements (or modified versions of such code, with unchanged
++ * license).  You may copy and distribute such a system following the
++ * terms of the GNU GPL for this module and the licenses of the
++ * other code concerned, provided that you include the source code of
++ * that other code when and as the GNU GPL requires distribution of
++ * source code.
++ *
++ * Note that people who make modified versions of this module
++ * are not obligated to grant this special exception for their
++ * modified versions; it is their choice whether to do so.  The GNU
++ * General Public License gives permission to release a modified
++ * version without this exception; this exception also makes it
++ * possible to release a modified version which carries forward this
++ * exception.
++ *
++ */
++
++/*
++ * Quick Start for TCP and IP.
++ * A scheme for transport protocols to dynamically determine initial 
++ * congestion window size.
++ *
++ * http://www.ietf.org/internet-drafts/draft-amit-quick-start-02.ps
++ *
++ * This defines the Quick Start packet header
++ * 
++ * hdr_qs.h
++ *
++ * Srikanth Sundarrajan, 2002
++ * sundarra@usc.edu
++ */
++ 
++ /*
++ * Topology Independent Multipath (TIMP)
++ * Routing scheme for data center networks.
++ *
++ * https://github.com/nmaksic/timp
++ *
++ * TIMP control packet header definition 
++ *
++ * Natasa Maksic, 2020
++ * maksicn@etf.bg.ac.rs 
++ */
++
++#ifndef _HDR_TIMP_H
++#define _HDR_TIMP_H
++
++#include <assert.h>
++#include <packet.h>
++
++//#define QS_DEBUG 1 // get some output on QS events -PS
++
++//#enum QS_STATE { QS_DISABLE, QS_REQUEST, QS_RESPONSE };
++
++struct hdr_timp {
++ 
++   unsigned char command_; 
++   unsigned int dst_id_;
++   unsigned int dst_price_;
++ 
++	static int offset_;	// offset for this header 
++	inline int& offset() { return offset_; }
++
++	inline static hdr_timp* access(Packet* p) {
++		return (hdr_timp*) p->access(offset_);
++	}
++
++   unsigned char& command() { return command_; }
++	unsigned int& dst_id() { return dst_id_; }
++	unsigned int& dst_price() { return dst_price_; }
++	
++	enum Command_e
++  {
++    UPDATE = 0x1
++  };
++
++};
++
++// Local Variables:
++// mode:c++
++// c-basic-offset: 8
++// End:
++#endif
++
+diff -ruN ns-2.35/hula/hula_classifier.cc ns-2.35-1/hula/hula_classifier.cc
+--- ns-2.35/hula/hula_classifier.cc	2016-03-12 18:57:24.000000000 +0100
++++ ns-2.35-1/hula/hula_classifier.cc	2021-02-25 05:46:26.824591000 +0100
+@@ -46,6 +46,12 @@
+ #include <set>
+ #include "hdr_hula.h"
+ 
++#include "timp.h"
++#include "hdr_timp.h"
++#include "timp_agent.h"
++
++#define THREETIER
++
+ #define MAX_HOSTS 256
+ #define MAX_LINKS MAX_HOSTS+10
+ #define MAX_TORS MAX_HOSTS+10
+@@ -54,7 +60,15 @@
+ #define MAX_FLOWLETS 256
+ #define MAX_PORTS 1024
+ #define MAX_UPLINKS 2
++#ifdef THREETIER
+ #define MAX_LABELS 8
++#else
++#define MAX_LABELS 5
++#endif
++// original 400
++#define CMULTIPLIER1 40
++
++
+ 
+ /*
+  * A replicator is not really a packet classifier but
+@@ -84,6 +98,7 @@
+     int ecn[MAX_PORTS]; 
+     double link_util[MAX_LINKS];
+     int flowlets_on_link[MAX_LINKS];
++    long packets_total;
+     double last_sync_time[MAX_LINKS];
+     double max_util[MAX_TORS][MAX_LINKS];
+     double probe_update[MAX_TORS][MAX_LINKS];
+@@ -92,6 +107,7 @@
+ //    int num_flowlets_;
+     int last_best_hop_;
+     int test_algo_;
++    TimpAgent ta_;
+     int num_flowlets;
+     int flowlet_ids[MAX_FLOWLETS];
+     double cur_mon_sync_;
+@@ -134,8 +150,15 @@
+         int last_uplink;
+     };
+     
++#ifdef THREETIER
+     conga_info* to_cinfo[MAX_HOSTS];
+     conga_info* from_cinfo[MAX_HOSTS];
++#else    
++    conga_info* to_cinfo[MAX_LABELS];
++    conga_info* from_cinfo[MAX_LABELS];
++#endif
++
++
+     void cinfo_init(conga_info* cinfo);
+     bool is_tor();
+     bool is_aggregate();
+@@ -148,8 +171,17 @@
+     std::set<int> uncongested[MAX_HOSTS];
+     bool is_congested(int dst, int port);
+     bool is_uncongested(int dst, int port);
++    
++    Timp timp;
++    bool timpinitialized;
++    bool pktinitialized;
++    double maxutil;
+ };
+ 
++
++
++
++
+ static class HulaClassifierClass : public TclClass {
+ public:
+ 	HulaClassifierClass() : TclClass("Classifier/HulaClassifier") {}
+@@ -194,7 +226,11 @@
+     }
+     for(int j=0; j<MAX_FLOWLETS; j++)
+         flowlet_ids[j] = 0;
++    packets_total = 0;
+     memset(flowlets_, 0, sizeof(flowlets_));
++    timpinitialized = false;
++    pktinitialized = false;
++    maxutil = 0;
+ }
+ 
+ 
+@@ -290,7 +326,7 @@
+ 
+ int HulaClassifier::get_ecmp_hop(int hash, int dst)
+ {
+-
++#ifdef THREETIER
+     int next_hop = 0;
+     next_hop=2;
+     if(nodeid_>=26) next_hop=4;
+@@ -365,7 +401,65 @@
+         }
+     }
+     }
++#else
++    // handling hosts
++    int next_hop = 0;
++    if(nodeid_>=26) next_hop=2;
++    if(nodeid_>=42) next_hop=4;
++    if(nodeid_>=58) next_hop=6;
++    if(nodeid_>=74) next_hop=8;
++
++    // handling 0, 2, 4, 6, 8
++    if ((nodeid_ == 0 && (dst >= 10 && dst <= 25)) 
++    	 || (nodeid_ == 2 && (dst >= 26 && dst <= 41)) 
++    	 || (nodeid_ == 4 && (dst >= 42 && dst <= 57)) 
++    	 || (nodeid_ == 6 && (dst >= 58 && dst <= 73)) 
++    	 || (nodeid_ == 8 && (dst >= 74 && dst <= 89))) {
++	next_hop = dst;
++    } else {
++    if (nodeid_ == 0 || nodeid_ == 2 || nodeid_ == 4 || nodeid_ == 6 || nodeid_ == 8) {
++
++    	if (hash >= 0 && hash <=51)
++    		next_hop = 1;
++
++    	if (hash >= 52 && hash <=103)
++    		next_hop = 3;
++
++    	if (hash >= 104 && hash <=155)
++    		next_hop = 5;
++
++    	if (hash >= 156 && hash <=207)
++    		next_hop = 7;
++
++    	if (hash >= 208 && hash <=256)
++    		next_hop = 9;		
++
++    }
++    }
++    
++    // handling 1,3,5,7,9
++    if (nodeid_ == 1 || nodeid_ == 3 || nodeid_ == 5 || nodeid_ == 7 || nodeid_ == 9) {
++    
++    
++    	if (dst >= 10 && dst <= 25)
++    		next_hop = 0;
++    	 
++    	if (dst >= 26 && dst <= 41)
++    	    	next_hop = 2;
++    		 
++    	if (dst >= 42 && dst <= 57) 
++    		next_hop = 4;
++    	
++    	if (dst >= 58 && dst <= 73)
++    		next_hop = 6;    	
++    	    	
++    	if (dst >= 74 && dst <= 89)
++    		next_hop = 8;    	
++ 		
++    }
++    
+ 
++#endif
+     return next_hop;
+ }    
+ 
+@@ -373,13 +467,17 @@
+ 
+ int HulaClassifier::get_label_hop(int label, int dst)
+ {
+-        
++#ifdef THREETIER
+     if(nodeid_ == 2 || nodeid_ == 4) return get_ecmp_hop((label >> 2) & 1, dst);
+     if(nodeid_ == 6 || nodeid_ == 8) return get_ecmp_hop((label >> 2) & 1, dst);
+     if(nodeid_ == 3 || nodeid_ == 5) return get_ecmp_hop((label >> 1) & 1, dst);
+     if(nodeid_ == 7 || nodeid_ == 9) return get_ecmp_hop((label >> 1) & 1, dst);
+     if(nodeid_ == 0 || nodeid_ == 1) return get_ecmp_hop((label >> 0) & 1, dst);
+     return get_ecmp_hop(0, dst);
++#else
++    return 0;
++#endif
++
+ }
+ 
+ 
+@@ -443,7 +541,8 @@
+         ch->conga_util = 0;
+     }
+ 
+-    if(test_algo_ == 8 && is_tor()){
++#ifdef THREETIER
++   if(test_algo_ == 8 && is_tor()){
+         int dst_tor = host2tor(iph->daddr());
+         conga_info* cinfo = to_cinfo[dst_tor];
+         if (cinfo == NULL) printf("bullshit: on %d to %d \n", nodeid_, dst_tor);
+@@ -456,6 +555,32 @@
+         }
+         return next_uplink;
+     }
++#else
++    if(test_algo_ == 8){
++
++        int dst_tor = host2tor(iph->daddr());
++        int src_tor = host2tor(iph->saddr());
++        if(src_tor == nodeid_){
++        conga_info* cinfo = to_cinfo[dst_tor/2];
++        if (cinfo == NULL) { 
++        	printf("bullshit: on %d to %d \n", nodeid_, dst_tor);
++        	return get_ecmp_hop(0, dst);
++       	}
++        int next_uplink = 0;
++        for(int i=0; i<MAX_LABELS; i++){
++            if(cinfo->util[next_uplink] > cinfo->util[i]) next_uplink = i;
++            if(nodeid_ == 2){
++               //printf("Node (2) dst_tor = %d,  Util[%d] = %lf\n", dst_tor, i, cinfo->util[i]);
++            }
++        }
++        //printf("next_uplink %i\n", next_uplink);
++        return 2*next_uplink+1;
++        } else {
++        	return get_ecmp_hop(0, dst);
++        }
++        
++    }
++#endif
+ 
+     return min_hop;
+ }    
+@@ -507,7 +632,11 @@
+ 
+ 
+ bool HulaClassifier::is_tor(){
++#ifdef THREETIER
+     return (nodeid_==2||nodeid_==4||nodeid_==6||nodeid_==8);
++#else
++   return (nodeid_==0||nodeid_==2||nodeid_==4||nodeid_==6||nodeid_==8);
++#endif
+ }
+ 
+ 
+@@ -517,10 +646,19 @@
+ 
+ 
+ int HulaClassifier::host2tor(int host){
++#ifdef THREETIER
+     if(host >= 10 && host <= 25) return 2;
+     if(host >= 26 && host <= 41) return 4;
+     if(host >= 42 && host <= 57) return 6;
+     if(host >= 58 && host <= 73) return 8;
++#else
++    if(host >= 10 && host <= 25) return 0;
++    if(host >= 26 && host <= 41) return 2;
++    if(host >= 42 && host <= 57) return 4;
++    if(host >= 58 && host <= 73) return 6;
++    if(host >= 74 && host <= 89) return 8;
++#endif
++
+     return 0;
+ }
+ 
+@@ -539,9 +677,11 @@
+ 	hdr_cmn* ch = hdr_cmn::access(p);
+     double current_time = Scheduler::instance().clock();
+     hdr_hula* hula_hdr = hdr_hula::access(p);
+-    if(hula_hdr->dst_tor_ == -1){
++    int probe_src = 0;
++    if(hula_hdr->dst_tor_ == -1){	
+         ch->iface() = -1;
+         hula_hdr->dst_tor_ = nodeid_;
++    	probe_src = 1;
+     }
+     else {
+         double hop_util = hula_hdr->max_util_; 
+@@ -570,7 +710,7 @@
+     }   
+ 
+     //if(nodeid_ >= 0) printf("node=%d, inport=%d, tor=%d\n", nodeid_,ch->iface(),hula_hdr->dst_tor_);
+-
++#ifdef THREETIER 
+     for (int i = 0; i < maxslot_; i++) {
+         NsObject* o = slot_[i];
+         if (is_upstream(i) || is_downstream(i))
+@@ -589,6 +729,47 @@
+             o->recv(p1);
+         }
+     }
++#else 
++    // forward probe in leaf spine topology to slots towards destination
++    // this is performed only in spine switches
++    if (nodeid_ == 0 || nodeid_ == 2 || nodeid_ == 4 || nodeid_ == 6 || nodeid_ == 8) {
++        //int src_tor = host2tor(iph->saddr());
++        if(probe_src == 1){
++        	
++        	// forward probe to spine switches
++        	for (int i = 0; i < MAX_LABELS; i++) {
++        		NsObject* o = slot_[2*i+1];
++        		//printf("forward probe 1 %i %i\n", nodeid_, 2*i+1);
++        		Packet* p1 = p->copy();
++			    hdr_cmn* ch1 = hdr_cmn::access(p1);
++			    ch1->iface_ = nodeid_;
++			    o->recv(p1);
++        	}
++        		
++        }
++    
++    
++    }
++    if (nodeid_ == 1 || nodeid_ == 3 || nodeid_ == 5 || nodeid_ == 7 || nodeid_ == 9) {
++    		// forward probe to destination switches
++    		
++    	// forward probe to spine switches except to source
++	for (int i = 0; i < MAX_LABELS; i++) {
++		int dst = 2*i;
++		if (dst != ch->iface()) {
++		NsObject* o = slot_[dst];
++		//printf("forward probe 2 %i %i\n", nodeid_, dst);
++		Packet* p1 = p->copy();
++		    hdr_cmn* ch1 = hdr_cmn::access(p1);
++		    ch1->iface_ = nodeid_;
++		    o->recv(p1);
++		}
++	}
++    
++    }
++    
++    
++#endif
+     Packet::free(p);
+ 
+ 
+@@ -619,6 +800,8 @@
+     cinfo->last_uplink = 0;
+ }
+ 
++#ifdef THREETIER
++
+ void HulaClassifier::process_conga_packet(Packet* p)
+ {
+     hdr_cmn* ch = hdr_cmn::access(p);
+@@ -682,20 +865,162 @@
+     }
+ }
+ 
++#else
+ 
++void HulaClassifier::process_conga_packet(Packet* p)
++{
++    hdr_cmn* ch = hdr_cmn::access(p);
++	hdr_ip* iph = hdr_ip::access(p);
++    int dst_tor = host2tor(iph->daddr());
++    int src_tor = host2tor(iph->saddr());
++    if(is_tor()){
++    	//printf("add records %i %i %i\n", dst_tor, src_tor);
++        conga_info* cinfo = from_cinfo[src_tor/2];
++        if(cinfo == NULL){
++            cinfo = new conga_info;
++            cinfo_init(cinfo);
++            from_cinfo[src_tor/2] = cinfo;
++        }
++
++        cinfo = to_cinfo[src_tor/2];
++        if(cinfo == NULL){
++            cinfo = new conga_info;
++            cinfo_init(cinfo);
++            to_cinfo[src_tor/2] = cinfo;
++        }
++        
++        cinfo = to_cinfo[dst_tor/2];
++        if(cinfo == NULL){
++            cinfo = new conga_info;
++            cinfo_init(cinfo);
++            to_cinfo[dst_tor/2] = cinfo;
++        }
++
++        cinfo = from_cinfo[dst_tor/2];
++        if(cinfo == NULL){
++            cinfo = new conga_info;
++            cinfo_init(cinfo);
++            from_cinfo[dst_tor/2] = cinfo;
++        }
++
++        //double current_time = Scheduler::instance().clock();
++
++        if(dst_tor == nodeid_){
++            //printf("from %d, reached %d\n", src_tor, dst_tor);
++            // Read the CONGA info
++            cinfo = from_cinfo[src_tor/2];    
++            cinfo->util[ch->conga_uplink / 2] = ch->conga_util;
++            //if(nodeid_ == 6 && ch->conga_uplink == 0) printf("feedback1 = %lf for %d:%d\n",ch->conga_util, src_tor, ch->conga_uplink);
++            
++            // Read the feedback info
++            cinfo = to_cinfo[src_tor/2];
++            cinfo->util[ch->feedback_uplink / 2] = ch->feedback_util;
++            //printf("feedback = %lf\n",ch->feedback_util);
++            //if(nodeid_ == 2 && ch->feedback_util > 0) printf("feedback = %lf\n",ch->feedback_util);
++            
++        }
++        else { //Put feedback on the packet
++            assert(src_tor == nodeid_);
++            cinfo = from_cinfo[dst_tor/2];    
++            //printf("cinfo->last_uplink %i %i\n", cinfo->last_uplink, test_algo_);
++            if(test_algo_ == 7) cinfo->last_uplink = (cinfo->last_uplink + 1) % MAX_UPLINKS;
++            if(test_algo_ == 8) cinfo->last_uplink = ((cinfo->last_uplink + 1) % MAX_LABELS);
++            ch->feedback_uplink = cinfo->last_uplink * 2 +1;
++            ch->feedback_util = cinfo->util[cinfo->last_uplink];
++            //if(nodeid_ == 6 && ch->feedback_uplink == 0) printf("feedback2 = %lf for %d:%d\n",ch->feedback_util,dst_tor,ch->feedback_uplink);
++            //printf("from %d, going to %d\n", src_tor, dst_tor);
++        }
++    }
++}
++
++#endif
+ 
+ void HulaClassifier::recv(Packet* p, Handler*)
+ {
+-	hdr_ip* iph = hdr_ip::access(p);
++	packets_total++;
+ 	hdr_cmn* ch = hdr_cmn::access(p);
++	
++	if (!timpinitialized) {
++		timp.initialize(nodeid_, &ta_);
++		timpinitialized = true;
++	}
++	
++
++	hdr_ip* iph = hdr_ip::access(p);
++	
+ 	if (maxslot_ < 0) {
++		printf("%s drop %i %i %d", name(), 
++				iph->saddr(), iph->daddr(), ch->iface());
+ 		if (!ignore_) 
+ 			Tcl::instance().evalf("%s drop %ld %ld %d", name(), 
+ 				iph->saddr(), iph->daddr(), ch->iface());
+ 		Packet::free(p);
+ 		return;
+ 	}
++	
++	
++	
++	
++	
+     double current_time = Scheduler::instance().clock();
++    
++    
++    
++    if (test_algo_ == 10) {
++    
++    
++    		if (ch->ptype_ == PT_TIMP) 
++
++		if (!pktinitialized) {
++			timp.setOrigPkt(p);		
++			pktinitialized = true;
++			}
++	
++		
++    
++		if (nodeid_ == iph->daddr() && ch->ptype_ != PT_TIMP){ //  
++
++		    if (port_dmux_ == NULL)
++			printf("port_dmux_ == NULL %i\n", nodeid_);
++		    port_dmux_->recv(p);
++		    return;
++		}
++	
++	
++	
++		int hash1 = l3_hash(iph->saddr(), iph->daddr(), iph->sport(), iph->dport(), ch->ptype_);
++	
++		int next_hop = timp.handlePacket(iph->daddr(), hash1, current_time, flowlet_win_, p, slot_);
++	
++	        
++	
++		if (next_hop != -1) {
++	
++		NsObject* o = slot_[next_hop];
++		if (o == NULL)
++			printf("NULL node for sw_id = %d, dst = %d, next_hop = %d A\n", nodeid_, iph->daddr(), next_hop);
++			
++		ch->iface_ = nodeid_;
++            	o->recv(p);
++            	
++            		double delta_time = current_time - last_sync_time[next_hop];
++		    link_util[next_hop]*= (1.0 - (delta_time/tau_));
++		    last_sync_time[next_hop] = current_time;
++
++	    		double local_util1 = (link_util[next_hop]* 8.0/(tau_ * CMULTIPLIER1* 1000000));
++	    	     if (local_util1 > maxutil) 
++	    	     	maxutil = local_util1;
++	    
++
++		    int asymm_factor = 1;
++
++		    link_util[next_hop]+= ch->size() * asymm_factor;
++            	
++		}
++		
++		return;
++	}
++	
+ 	
+ 	//If the direction of the packet is DOWN, 
+ 	// now that is has reached the end of the stack 
+@@ -713,13 +1038,14 @@
+     }
+ */
+ 
++
+     if (ch->ptype_ == PT_HULA){ /* Probe packets */
+         process_hula_packet(p);
+         return;
+     }
+ 
+     else { /* Not probe packets */
+-        int in_port = ch->iface_;
++        //int in_port = ch->iface_;
+         int next_hop = 1;
+ 
+         // CONGA pre-processing
+@@ -769,6 +1095,7 @@
+                 int hash2 = flowlet_hash(iph->saddr(), iph->daddr(), iph->sport(), iph->dport(), ch->ptype_, flowlet_ids[hash1]);
+                 int ecmp_hop = get_ecmp_hop(hash2, iph->daddr()); 
+                 if(test_algo_ == 2) flowlets_on_link[ecmp_hop]++;
++                
+             }
+             
+         }
+@@ -780,6 +1107,7 @@
+             f->last_seen_time = current_time;
+             //next_hop = get_min_hop(iph->daddr(), in_port);
+             next_hop = get_min_hop(p);
++            //printf("next_hop %i\n", next_hop);
+             f->last_best_hop = next_hop;
+             num_flowlets++;
+             //flowlets_on_link[next_hop]++;
+@@ -825,9 +1153,12 @@
+                 ch->conga_util = 0.0;
+                 //Remember next_hop contains the tunnel label
+             }
++#ifdef THREETIER
+             next_hop = get_label_hop(ch->conga_uplink, dst);
++#endif            
+         }
+-        
++       
++    
+     
+             if(test_algo_>=1) flowlets_on_link[next_hop]++;
+             /*
+@@ -839,14 +1170,17 @@
+ 
+             NsObject* o = slot_[next_hop];
+             if (o == NULL)
+-                printf("NULL node for sw_id = %d, dst = %d, next_hop = %d\n", nodeid_, iph->daddr(), next_hop);
+-            
++                printf("NULL node for sw_id = %d, dst = %d, next_hop = %d B\n", nodeid_, iph->daddr(), next_hop);
++            //printf("next_hop %i\n", next_hop);
+ 
+ //        if(current_time - last_sync_time[next_hop] > dre_interval_){
+             double delta_time = current_time - last_sync_time[next_hop];
+             link_util[next_hop]*= (1.0 - (delta_time/tau_));
+             last_sync_time[next_hop] = current_time;
+ //        }
++    		double local_util1 = (link_util[next_hop]* 8.0/(tau_ * CMULTIPLIER1* 1000000));
++    	    if (local_util1 > maxutil) 
++	    	     	maxutil = local_util1;
+     
+             //flowlets_on_link[next_hop]++;
+             int asymm_factor = 1;
+@@ -862,6 +1196,7 @@
+         }
+         if(test_algo_ == 8){
+             double local_util = (link_util[next_hop]* 8.0/(tau_ * 400* 1000000));
++            //printf("local_util %lf\n", local_util);
+             if(ch->conga_util < local_util) ch->conga_util = local_util;
+             //if(nodeid_ == 2 && dst == 42) printf("util = %lf, dst = %d, next_hop = %d\n",ch->conga_util,iph->daddr(),next_hop);
+         }
+@@ -883,10 +1218,21 @@
+ 		/*
+ 		 * $replicator slot
+ 		 */
++		 
+ 		if (strcmp(argv[1], "print") == 0) {
+-            for(int i=0; i<MAX_LINKS; i++){
++            /*for(int i=0; i<MAX_LINKS; i++){
+                 printf("num_flowlets[%d] = %d\n", i, flowlets_on_link[i]);   
+-            }
++            }*/
++            	printf("packets %i %li\n", nodeid_, packets_total);
++            	printf("maxutil %i %lf\n", nodeid_, maxutil);
++		    return (TCL_OK); 
++        }
++        if (strcmp(argv[1], "print-packets") == 0) {
++            /*for(int i=0; i<MAX_LINKS; i++){
++                printf("num_flowlets[%d] = %d\n", i, flowlets_on_link[i]);   
++            }*/
++            	printf("packets %i %li\n", nodeid_, packets_total);
++            	printf("maxutil %i %lf\n", nodeid_, maxutil);
+ 		    return (TCL_OK); 
+         }
+ 		if (strcmp(argv[1], "add-dmux") == 0) {
+diff -ruN ns-2.35/hula/rpcgenerator.cc ns-2.35-1/hula/rpcgenerator.cc
+--- ns-2.35/hula/rpcgenerator.cc	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/hula/rpcgenerator.cc	2021-02-16 20:25:33.403276000 +0100
+@@ -166,7 +166,7 @@
+ void RpcGenerator::pin_flow_to_connection(FullTcpAgent* connection,
+                                           FlowStat current_flow) {
+   connection->signal_on_empty() = TRUE;
+-  connection->advanceby(current_flow.flow_size);
++  connection->advance_bytes(current_flow.flow_size); 
+   //connection->advance_bytes(1000*flow_size);
+ 
+   /* Track flow to estimate FCT */
+diff -ruN ns-2.35/hula/test/cdf_websearch.txt ns-2.35-1/hula/test/cdf_websearch.txt
+--- ns-2.35/hula/test/cdf_websearch.txt	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/test/cdf_websearch.txt	2021-01-31 19:48:18.617977000 +0100
+@@ -0,0 +1,100 @@
++100
++100
++100
++100
++100
++10000
++10000
++10000
++10000
++10000
++50000
++50000
++50000
++50000
++50000
++50000
++50000
++50000
++50000
++50000
++100000
++100000
++100000
++100000
++100000
++100000
++100000
++100000
++100000
++100000
++300000
++300000
++300000
++300000
++300000
++300000
++300000
++300000
++300000
++300000
++700000
++700000
++700000
++700000
++700000
++700000
++700000
++700000
++700000
++700000
++800000
++800000
++800000
++800000
++800000
++800000
++800000
++800000
++800000
++800000
++1000000
++1000000
++1000000
++1000000
++1000000
++1000000
++1000000
++1000000
++1000000
++1000000
++2000000
++2000000
++2000000
++2000000
++2000000
++2000000
++2000000
++2000000
++2000000
++2000000
++3000000
++3000000
++3000000
++3000000
++3000000
++3000000
++3000000
++3000000
++3000000
++3000000
++5000000
++5000000
++5000000
++5000000
++5000000
++10000000
++10000000
++10000000
++10000000
++10000000
+diff -ruN ns-2.35/hula/test/graph/formatdata.py ns-2.35-1/hula/test/graph/formatdata.py
+--- ns-2.35/hula/test/graph/formatdata.py	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/test/graph/formatdata.py	2021-02-14 20:37:36.123952000 +0100
+@@ -0,0 +1,28 @@
++
++myFile = open("results.txt",'r+')
++lines = myFile.readlines()	
++
++ecmpflowstr=[x.strip() for x in lines[0].split(' ')]
++
++ecmpflowletstr=[x.strip() for x in lines[1].split(' ')]
++
++
++hulastr=[x.strip() for x in lines[2].split(' ')]
++
++
++congastr=[x.strip() for x in lines[3].split(' ')]
++
++
++timpstr=[x.strip() for x in lines[4].split(' ')]
++
++
++myFile.close()
++
++outFile = open("file.dat",'w')
++
++for i in range(9):
++
++   print >>outFile, str((i+1)*0.1) + " " + "{:.2f}".format(float(ecmpflowstr[i+2])*1000) + " " + "{:.2f}".format(float(ecmpflowletstr[i+2])*1000) + " " + "{:.2f}".format(float(hulastr[i+2])*1000) + " " + "{:.2f}".format(float(congastr[i+2])*1000) + " " + "{:.2f}".format(float(timpstr[i+2])*1000)
++
++outFile.close()
++
+diff -ruN ns-2.35/hula/test/graph/parse.py ns-2.35-1/hula/test/graph/parse.py
+--- ns-2.35/hula/test/graph/parse.py	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/test/graph/parse.py	2021-01-23 16:58:46.958995000 +0100
+@@ -0,0 +1,55 @@
++
++#prio_scheme_arr=[1,2,6,8]
++prio_scheme_arr=[1,2,6,8,10]
++#load_arr=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]
++load_arr=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
++
++
++run = 3
++myFile = open("results.txt",'w')
++for prio_scheme_ in prio_scheme_arr:
++
++    scheme='unknown'
++
++    if prio_scheme_==1:
++        scheme='ecmp_flow'
++    elif prio_scheme_==2:
++        scheme='ecmp_flowlet'
++    elif prio_scheme_==6:
++        scheme='hula'
++    elif prio_scheme_==8:
++        scheme='conga'
++    elif prio_scheme_==10:
++        scheme='timp'
++
++
++
++    res = ""
++    for load in load_arr:
++        result = 0
++        for i in range(run):
++           directory_name='websearch_%d_%s' % (int(load*100), scheme)
++           directory_name=directory_name.lower()
++           file_fct = directory_name + "/fct" + str(i) + ".log"
++           print file_fct
++
++
++           f = open(file_fct, 'r+')
++           lines = f.readlines()	
++           for line in lines:
++                if line.startswith("avg_fct = "):
++                    a=[x.strip() for x in line.split(' ')]
++                    fct = a[2]
++           f.close()
++           
++           print "fct " + fct
++           result = result + float(fct)
++           
++        result = result / run
++           
++        res = res + " " + str(result)
++           
++        
++    print >>myFile, scheme + ": " + res
++    
++myFile.close()
+diff -ruN ns-2.35/hula/test/graph/tf.gp ns-2.35-1/hula/test/graph/tf.gp
+--- ns-2.35/hula/test/graph/tf.gp	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/test/graph/tf.gp	2021-02-14 22:13:40.131324000 +0100
+@@ -0,0 +1,108 @@
++# Plot of file.dat 
++
++# This command works for a linux computer. In linux, you need to specify the exact location of
++# the font you want to use
++set terminal png notransparent rounded giant font "/usr/share/fonts/msttcore/arial.ttf" 45 \
++  size 1200,960 
++
++# nomirror means do not put tics on the opposite side of the plot
++set xtics nomirror
++set ytics nomirror
++
++# On the Y axis put a major tick every 5
++#set ytics 5
++set xtics 0.2
++
++# On both the x and y axes split each space in half and put a minor tic there
++set mxtics 2
++set mytics 2
++
++
++# Line style for axes
++# Define a line style (we're calling it 80) and set 
++# lt = linetype to 0 (dashed line)
++# lc = linecolor to a gray defined by that number
++set style line 80 lt 0 lc rgb "#808080"
++
++# Set the border using the linestyle 80 that we defined
++# 3 = 1 + 2 (1 = plot the bottom line and 2 = plot the left line)
++# back means the border should be behind anything else drawn
++set border 3 back ls 80 
++
++# Line style for grid
++# Define a new linestyle (81)
++# linetype = 0 (dashed line)
++# linecolor = gray
++# lw = lineweight, make it half as wide as the axes lines
++set style line 81 lt 0 lc rgb "#808080" lw 0.5
++
++# Draw the grid lines for both the major and minor tics
++set grid xtics
++set grid ytics
++set grid mxtics
++set grid mytics
++
++# Put the grid behind anything drawn and use the linestyle 81
++set grid back ls 81
++
++# Add line at -3db
++# Draw a line from the right end of the graph to the left end of the graph at
++# the y value of -3
++# The line should not have an arrowhead
++# Linewidth = 2
++# Linecolor = black
++# It should be in front of anything else drawn
++# set arrow from graph 0,first -3 to graph 1, first -3 nohead lw 2 lc rgb "#000000" front
++
++# Put a label -3db at 80% the width of the graph and y = -2 (it will be just above the line drawn)
++# set label "-3dB" at graph 0.8, first -2
++
++# Create some linestyles for our data
++# pt = point type (triangles, circles, squares, etc.)
++# ps = point size
++set style line 1 lt 1 lc rgb "#A00000" lw 2 pt 7 ps 1.5
++set style line 2 lt 1 lc rgb "#00A000" lw 2 pt 11 ps 1.5
++set style line 3 lt 1 lc rgb "#5060D0" lw 2 pt 9 ps 1.5
++set style line 4 lt 1 lc rgb "#0000A0" lw 2 pt 8 ps 1.5
++set style line 5 lt 1 lc rgb "#D0D000" lw 2 pt 13 ps 1.5
++set style line 6 lt 1 lc rgb "#00D0D0" lw 2 pt 12 ps 1.5
++set style line 7 lt 1 lc rgb "#B200B2" lw 2 pt 5 ps 1.5
++
++# Name our output file
++set output "tf.png"
++
++# Put X and Y labels
++set xlabel "Load"
++set ylabel "Average FCT [ms]"
++
++# Set the range of our x and y axes
++set xrange [0.1:0.9]
++set yrange [0:50]
++
++set xtics textcolor rgb "black"
++set ytics textcolor rgb "black"
++# set ytics format "{/:Bold {/=25 %h}}"
++
++
++# Give the plot a title
++#set title "Randomized Flows"
++
++# Put the legend at the bottom left of the plot
++# set key left bottom
++set key left top
++
++# Plot the actual data
++# u 1:2 = using column 1 for X axis and column 2 for Y axis
++# w lp = with linepoints, meaning put a point symbol and draw a line
++# ls 1 = use our defined linestyle 1
++# t "Test 1" = title "Test 1" will go in the legend
++# The rest of the lines plot columns 3, 5 and 7
++plot "file.dat" u 1:2 w lp ls 1 t "ECMP", \
++"file.dat" u 1:4 w lp ls 2 t "Hula", \
++"file.dat" u 1:5 w lp ls 7 t "Conga", \
++"file.dat" u 1:6 w lp ls 3 t "TIMP"
++
++# "file.dat" u 1:3 w lp ls 3 t "ECMP Flowlet", \
++
++# This is important because it closes our output file.
++set output 
+diff -ruN ns-2.35/hula/test/run_dctcp.py ns-2.35-1/hula/test/run_dctcp.py
+--- ns-2.35/hula/test/run_dctcp.py	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/hula/test/run_dctcp.py	2021-02-25 05:57:35.744560000 +0100
+@@ -1,5 +1,6 @@
+ import threading
+ import os
++import datetime
+ 
+ class SimThread(threading.Thread):
+     def __init__(self, cmd, directory_name):
+@@ -13,22 +14,27 @@
+         os.system(self.cmd)
+ 
+ 
++now = datetime.datetime.now()
++print ("Current date and time : ")
++print (now.strftime("%Y-%m-%d %H:%M:%S"))
++
+ load_arr=[0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]
+-prio_scheme_arr=[1,2,6,8]
++prio_scheme_arr=[1,2,6,8,10]
+ meanFlowSize=1138
+ run=17
+ 
+-ns_path='/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/ns'
+-sim_script='/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/hula/test/test.tcl'
++hulapath=os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+ 
+-threads=[]
+-max_thread_num=18
++ns_path=os.path.abspath(os.path.join(hulapath, os.pardir)) + '/ns' 
++sim_script=os.getcwd() + '/test.tcl'; 
+ 
++threads=[]
++#max_thread_num=18
++max_thread_num=7
+ 
+ for prio_scheme_ in prio_scheme_arr:
+     for load in load_arr:
+ 
+-        rps = (load * 160* 1000000000/ (3*16*meanFlowSize*1500*8))
+         scheme='unknown'
+ 
+         if prio_scheme_==1:
+@@ -39,23 +45,34 @@
+             scheme='hula'
+         elif prio_scheme_==8:
+             scheme='conga'
++        elif prio_scheme_==10:
++            scheme='timp'
+ 
+             
+         #Directory name: workload_scheme_load_[load]
+         directory_name='websearch_%d_%s' % (int(load*100), scheme)
+         directory_name=directory_name.lower()
++        seed_array=[0, 1, 2]
+         #Simulation command
+-        cmd=ns_path+' '+sim_script+' '\
+-            +str(rps)+' '\
+-            +str(prio_scheme_)+' '\
+-            +str(run) + ' > ' \
+-            +str('./'+directory_name+'/fct.log') 
+-            
+-
+-        #Start thread to run simulation
+-        print cmd
+-        newthread=SimThread(cmd,directory_name)
+-        threads.append(newthread)
++        runid=0
++        flowsize=[1545505, 1545505, 1545505] #web
++        #flowsize=[342330, 342330, 342330] #data
++        for seed_base in seed_array:
++            rps = (load * 160* 1000000000/ (3*16*flowsize[seed_base]*8)) 
++            cmd=ns_path+' '+sim_script+' '\
++                    +str(rps)+' '\
++                    +str(prio_scheme_)+' '\
++                    +str(seed_base)+' ' + os.getcwd() + "/cdf_websearch.txt" + ' > ' \
++                    +str('./'+directory_name+'/fct' + str(runid) + '.log') 
++            runid=runid+1        
++            print cmd
++            #Start thread to run simulation
++            newthread=SimThread(cmd,directory_name)
++            threads.append(newthread)
++
++        
++        
++        
+ 
+ #Thread id
+ thread_i=0
+@@ -76,6 +93,7 @@
+         print 'Start '+str(len(tmp_threads))+' threads\n'
+         #Run current threads in 'tmp_threads' right now!
+         for t in tmp_threads:
++            print "Start thread" + t.cmd        
+             t.start()
+         #Wait for all of them to finish
+         for t in tmp_threads:
+@@ -87,3 +105,8 @@
+     #'tmp_threads' is empty
+     else:
+         break
++        
++        
++now = datetime.datetime.now()
++print ("Current date and time : ")
++print (now.strftime("%Y-%m-%d %H:%M:%S"))
+diff -ruN ns-2.35/hula/test/test.tcl ns-2.35-1/hula/test/test.tcl
+--- ns-2.35/hula/test/test.tcl	2016-03-12 19:00:18.000000000 +0100
++++ ns-2.35-1/hula/test/test.tcl	2021-02-25 05:58:01.735634000 +0100
+@@ -3,12 +3,15 @@
+ 
+ 
+ set sum_fct 0.0
++set sum_flowsize 0
+ set num_jobs 0
+ 
+ #set cur_rps [expr [lindex $argv 0]/3.0]
+ set cur_rps [lindex $argv 0]
+ set cur_algo [lindex $argv 1]
+-#set cur_run [lindex $argv 2]
++set cur_run [lindex $argv 2]
++
++set rpc_cdf  [lindex $argv 3]
+ 
+ #set cur_rps [expr 6.0 * 6]
+ #set cur_rps 32.61
+@@ -20,7 +23,8 @@
+ #set cur_algo 1
+ 
+ set algo $cur_algo
+-set num_src 8
++#set num_src 8
++set num_src 16
+ 
+ Queue set limit_ 100
+ Queue/DropTail set queue-in-bytes_ true
+@@ -61,10 +65,6 @@
+ set asymm_bw 20000mb
+ set udp_rate 100mb
+ set queueSamplingInterval 0.1
+-#set rpc_cdf "/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/hula/test/cdf_dctcp_websearch.txt"
+-#set rpc_cdf "/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/hula/test/cdf_vl2_datamining.txt"
+-#set rpc_cdf "/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/hula/test/cdf.txt"
+-set rpc_cdf "/home/nkatta/ns2/ns-allinone-2.35/ns-2.35/hula/test/cdf_dm.txt"
+ 
+ 
+ set tstart 0.1
+@@ -78,7 +78,7 @@
+ set flowlet_gap $cur_flowlet_gap
+ 
+ #HULA probe gap in milliseconds
+-set hula_interval 0.1
++set hula_interval 0.2
+ 
+ #Workload job interval in milliseconds
+ set job_interval 5.0
+@@ -116,6 +116,15 @@
+ }    
+ 
+ 
++Node instproc insertTimpRef {ta} {
++
++   $self instvar classifier_
++
++   $classifier_ set ta_ $ta
++
++
++}
++
+ Node instproc getClassifier {} {
+     $self instvar classifier_
+     return $classifier_
+@@ -220,14 +229,18 @@
+ 
+ #Define a 'finish' procedure
+ proc finish {} {
+-global ns sum_fct num_jobs
+-#puts "sum_fct numjobs = "
+-#puts "$sum_fct"
+-#puts "$num_jobs"
++global ns sum_fct num_jobs sum_flowsize
++puts "sum_fct numjobs = "
++puts "$sum_fct"
++puts "$num_jobs"
+ if { $num_jobs > 0 } {
+     set avg_fct [expr {$sum_fct/$num_jobs}]
+-#    puts "avg_fct = $avg_fct"
++    puts "avg_fct = $avg_fct"
++    set avg_flowsize [expr {$sum_flowsize/$num_jobs}]
++    puts "avg_flowsize = $avg_flowsize"
+ }
++
++
+ $ns flush-trace
+ #puts "running nam..."
+ #exec nam droptail-queue-out.nam &
+@@ -258,10 +271,21 @@
+     connect-nodes $l($x) $a($y)  $spine_bw 1 0
+     connect-nodes $l($y) $a($x)  $spine_bw 1 0
+     connect-nodes $l($y) $a($y)  $spine_bw 1 0
++    
+     connect-nodes $a($x) $c1  $spine_bw 1 0
+     connect-nodes $a($y) $c1  $spine_bw 1 0
+-    if {$j == 2} {
++   
+     connect-nodes $a($x) $c2  $spine_bw 1 0
++    #if {$j == 2} {
++    #connect-nodes $a($y) $c2  $asymm_bw 1 0
++    #} else {
++    connect-nodes $a($y) $c2  $spine_bw 1 0
++    #}
++#    connect-nodes $a($x) $c1  $spine_bw 1 0
++#    connect-nodes $a($y) $c1  $spine_bw 1 0
++    #asimetricni test
++#   if {$j == 2} {
++#    connect-nodes $a($x) $c2  $spine_bw 1 0
+     #set qfile [$ns monitor-queue $c2 $a($x) [open queue_log.tr w] [expr $queueSamplingInterval/1000]]
+     #[$ns link $c2 $a($x)] queue-sample-timeout
+     #$ns rtmodel-at 0.2 down $c2 $a($x)
+@@ -270,14 +294,30 @@
+     #$ns rtmodel-at 0.5 up $a($x) $c2
+     #connect-nodes $a($y) $c2  $asymm_bw 1 0
+     #connect-nodes $a($y) $c2  $spine_bw 1 0
+-    } else {
+-    connect-nodes $a($x) $c2  $spine_bw 1 0
+-    connect-nodes $a($y) $c2  $spine_bw 1 0
+-    }
++#    } else {
++#    connect-nodes $a($x) $c2  $spine_bw 1 0
++#    connect-nodes $a($y) $c2  $spine_bw 1 0
++#    }
+     #connect-nodes $a($y) $c2  $spine_bw 1 0
+ }
+ 
++set timp_probe(1) [new Agent/TIMP]
++$ns attach-agent $c1  $timp_probe(1)
+ 
++$c1 insertTimpRef $timp_probe(1)
++if {$algo == 10} {
++   $ns at 0.01 "$timp_probe(1) start"
++}
++$ns at $tstop "$timp_probe(1) stop"
++
++set timp_probe(2) [new Agent/TIMP]
++$ns attach-agent $c2  $timp_probe(2)
++
++$c1 insertTimpRef $timp_probe(2)
++if {$algo == 10} {
++   $ns at 0.01 "$timp_probe(2) start"
++}
++$ns at $tstop "$timp_probe(2) stop"
+ 
+ 
+ for {set tor 1} {$tor <= [expr 2*$num_tor_pairs]} {incr tor} {
+@@ -287,6 +327,27 @@
+         $hula_probe($tor) set probe_interval_  [expr $hula_interval/1000.0]
+         $hula_probe($tor) set packetSize_ 64
+ 
++        set x [expr 2*($tor+1)]
++        set timp_probe($x) [new Agent/TIMP]
++        $ns attach-agent $l($tor) $timp_probe($x)
++        
++        $l($tor) insertTimpRef $timp_probe($x)
++        if {$algo == 10} {
++            $ns at 0.01 "$timp_probe($x) start"
++        }
++        $ns at $tstop "$timp_probe($x) stop"
++        
++      #  $l($tor) insertDmux
++        set x [expr 2*($tor+1) + 1]
++        set timp_probe($x) [new Agent/TIMP]
++        $ns attach-agent $a($tor) $timp_probe($x)
++     #   $a($tor) insertDmux
++        
++        $a($tor) insertTimpRef $timp_probe($x)
++        if {$algo == 10} {
++            $ns at 0.01 "$timp_probe($x) start"
++        }
++
+         #$ns connect $hula_probe($i) $dst1_hula
+ 
+         if {$algo == 6 || $algo == 9} {
+@@ -348,13 +409,15 @@
+             #$ns connect $udp($src) $usink($i)
+ 
+             #if (0) {
++            #set cur_run 0
+ 
+             if ($k<=$num_src) {
+             for {set conn 0} {$conn < 3 } {incr conn} {
+-                set rpc($src,$i,$conn) [new RpcGenerator [expr 17*$src+1244*$i+33*$conn]  $cur_rps $rpc_cdf $h($src) $h($i)]
++                #src 1-32 i 33-64 con 0-2 max 17*32+1244*64+33*2
++                set rpc($src,$i,$conn) [new RpcGenerator [expr $cur_run*100000+17*$src+1244*$i+33*$conn]  $cur_rps $rpc_cdf $h($src) $h($i)]
+                 #set rpc($src,$i,$conn) [new RpcGenerator $cur_run $cur_rps $rpc_cdf $h($src) $h($i)]
+                 $ns at $tstart "$rpc($src,$i,$conn) start"
+-                #$ns at $tstop "$rpc($src,$i,$conn) dump_fcts"
++                $ns at $tstop "$rpc($src,$i,$conn) dump_fcts"
+             }            
+             }
+             #}
+@@ -373,6 +436,4 @@
+ 
+ $ns at $tstop "finish"
+ 
+-#endif
+-
+ $ns run
+diff -ruN ns-2.35/hula/timp_agent.cc ns-2.35-1/hula/timp_agent.cc
+--- ns-2.35/hula/timp_agent.cc	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/timp_agent.cc	2021-01-09 15:45:51.857586000 +0100
+@@ -0,0 +1,130 @@
++
++
++ /*
++ * Topology Independent Multipath (TIMP)
++ * Routing scheme for data center networks.
++ *
++ * https://github.com/nmaksic/timp
++ *
++ * TIMP control packet header definition 
++ *
++ * Based on hula_agent.cc (
++      "HULA: Scalable load balancing using programmable data-planes," : https://www.cs.princeton.edu/~jrex/publications.html#sdn
++      https://drive.google.com/file/d/0B0h6wPXnFG3RRHVZY245aGprUEk/view  )
++ *
++ * Natasa Maksic, 2020
++ * maksicn@etf.bg.ac.rs 
++ */
++
++/*
++ * timp_agent.cc
++ */
++
++#include <assert.h>
++#include <math.h>
++#include <stdio.h>
++#include <signal.h>
++#include <float.h>
++
++#include "object.h"
++#include "agent.h"
++#include "packet.h"
++#include "ip.h"
++#include "classifier.h"
++#include "connector.h"
++#include "delay.h"
++#include "queue.h"
++#include "scheduler.h"
++#include "random.h"
++#include "tcp.h"
++
++#include "hdr_timp.h"
++#include "timp_agent.h"
++#include <fstream>
++
++#include <iostream>
++
++static class TimpAgentClass : public TclClass {
++public:
++	TimpAgentClass() : TclClass("Agent/TIMP") {}
++	TclObject* create(int, const char*const*) {
++		return (new TimpAgent);
++	}
++} class_TimpAgent;
++
++TimpAgent::TimpAgent() : Agent(PT_TIMP)                                    
++{       
++        //bind("packetSize_", &size_);
++ 
++}
++
++
++void TimpAgent::start()
++{
++      Packet* pkt = allocpkt(); //Packet::alloc();
++  	//initpkt(pkt);
++	hdr_timp *hdr = hdr_timp::access(pkt);
++	hdr->command_ = hdr_timp::UPDATE;
++	hdr->dst_id_ = 1;
++	hdr->dst_price_ = 1;
++
++   //printf("TimpAgent::start()\n");
++   
++   hdr_cmn* ch = hdr_cmn::access(pkt);
++	ch->ptype_ = PT_TIMP;
++   ch->next_hop_ = 1;
++   
++   send(pkt, 0);  
++}
++
++
++void TimpAgent::stop()
++{
++    ;
++}
++
++
++int TimpAgent::command(int argc, const char*const* argv)                                                     
++{                                                                                                           
++        if (argc == 2) {
++                if (strcmp(argv[1], "start") == 0) {
++                        start();                                                                      
++                        return (TCL_OK);
++                } else if (strcmp(argv[1], "stop") == 0) {                                                  
++                        stop();                                                                             
++                        return (TCL_OK);                                                                    
++                }
++                                                                                                            
++        } 
++        return (Agent::command(argc, argv));                                                                
++}       
++                        
++
++/*void TimpAgent::probe_timeout()
++{
++   ;
++}*/
++
++void TimpAgent::recv(Packet* packet, Handler*)
++{
++	double app_rate;
++	//double avail_bw, util;
++	Classifier * pkt_target;
++	Tcl& tcl = Tcl::instance();
++	char qname[64], lname[64];
++   hdr_timp *ht =  hdr_timp::access(packet);
++	//hdr_ip *iph = hdr_ip::access(packet);
++	//hdr_cmn *ch = hdr_cmn::access(packet);
++
++    //printf("incoming interface is %d\n", ch->iface_);
++	return;
++  
++}
++
++
++
++/*
++Local Variables:
++c-basic-offset: 8
++End:
++*/
+diff -ruN ns-2.35/hula/timp_agent.h ns-2.35-1/hula/timp_agent.h
+--- ns-2.35/hula/timp_agent.h	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/timp_agent.h	2021-01-09 14:21:04.410564000 +0100
+@@ -0,0 +1,52 @@
++
++/*
++ * Topology Independent Multipath (TIMP)
++ * Routing scheme for data center networks.
++ *
++ * https://github.com/nmaksic/timp
++ *
++ * TIMP control packet header definition 
++ *
++ * Based on hula_agent.h (
++      "HULA: Scalable load balancing using programmable data-planes," : https://www.cs.princeton.edu/~jrex/publications.html#sdn
++      https://drive.google.com/file/d/0B0h6wPXnFG3RRHVZY245aGprUEk/view  )
++ *
++ * Natasa Maksic, 2020
++ * maksicn@etf.bg.ac.rs 
++ */
++
++/*
++ * timp_agent.h
++ */
++
++#ifndef _TIMPAGENT_H
++#define _TIMPAGENT_H
++
++#include <stdarg.h>
++
++#include "object.h"
++#include "agent.h"
++#include "packet.h"
++#include "hdr_hula.h"
++#include "timer-handler.h"
++#include "lib/bsd-list.h"
++#include "queue.h"
++#include "delay.h"
++
++class TimpAgent;
++
++
++class TimpAgent : public Agent {
++ public:
++        TimpAgent();
++        
++        virtual void recv(Packet* p, Handler*);
++        virtual int command(int argc, const char*const* argv);
++
++protected:
++        virtual void start();
++        virtual void stop();
++
++};
++
++#endif // _TIMPAGENT_H
+diff -ruN ns-2.35/hula/timp.cc ns-2.35-1/hula/timp.cc
+--- ns-2.35/hula/timp.cc	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/timp.cc	2021-02-23 06:13:51.731803000 +0100
+@@ -0,0 +1,1061 @@
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License version 2 as
++// published by the Free Software Foundation;
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// You should have received a copy of the GNU General Public License
++// along with this program; if not, write to the Free Software
++// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++//
++// Author: Natasa Maksic
++//
++
++
++//
++// This file extends the functionality of Hula implementation which 
++// is available at: https://www.cs.princeton.edu/~jrex/publications.html#sdn ,
++// under the referenc of the Hula paper.
++// Implementation if this class is limited to predefined topology, as is
++// the implementation it extends.
++// The topology is represented in the followint figures, the
++// numbers represent node identifiers in the format (node id, [list of parent ids])
++// Parent ids are identifiers of the nodes in the upper layer of topology to
++// which node is connected.
++
++// Spine layer                       (0, [])                     (1, [])
++// Access layer             (3, [0,1])   (5, [0,1])       (7, [0,1])  (9, [0,1])
++// Leaf layer               (2, [3,5])   (4, [3,5])       (6, [7,9])  (8, [7,9])
++
++// Leaf layer consists of ToR switches, with 16 servers attached to each ToR switch. 
++// Servers with identifiers 10-25 are connected to switch 2 and servers 26-41 are 
++// connected to switch 4. Servers 42-57 are connected to switch 6 and servers 58-73
++// are connected to switch 8.
++
++// The second supported topology is leaf spine topology with 5 spine switches and
++// 5 leaf switches. Each leaf switch has 16 server connected to it. 
++
++// If THREETIER is defineed than the toplogy from Hula paper is used, else the leaf
++// spine topology is used.
++
++#include "timp.h"
++#include <cstring> // for memset
++#include <climits> // for INT_MAX
++
++#include "hdr_timp.h"
++#include "hdr_hula.h"
++#include "ip.h"
++
++//#include "classifier.h"
++
++#include <iostream>
++#include <algorithm>
++
++//#define DEBUG
++
++#define THREETIER
++
++/*static class TimpAgentClass : public TclClass {
++public:
++	TimpAgentClass() : TclClass("Agent/TIMP") {}
++	TclObject* create(int, const char*const*) {
++		return (new Timp);
++	}
++} class_TimpAgent;*/
++
++// with regard to comparison with Hula, its implementation
++// keeps unlimited linked list of flowlets which is not realistic
++
++
++ //: Agent(PT_TIMP)
++Timp::Timp()  {
++   
++}
++
++// : Agent(PT_TIMP)
++Timp::Timp(int id)  {
++   
++   ;//initialize(id);
++}
++
++void Timp::printAlternateNeighbors() {
++
++   for (int i = 0; i < DST_MAX; i++) {
++      for (int j = 0; j < ALTRT_MAX; j++) {
++         std::cout << "alternate dst: " << i << " alt: " << alternateroutes[i*ALTRT_MAX + j] << std::endl;
++      }
++      for (int j = 0; j < ALTRT_MAX; j++) {
++         std::cout << "previous dst: " << i << " alt: " << previousSw[i*ALTRT_MAX + j] << " index " <<  i*ALTRT_MAX + j << std::endl;
++      }
++   }
++
++
++}
++
++void Timp::initialize(int id, TimpAgent *c) {
++#ifdef DEBUG
++   std::cout << "Timp::initialize " << id << std::endl;
++#endif
++/*
++   Packet* pkt = allocpkt();
++    hdr_timp *hdr = hdr_timp::access(pkt);
++    hdr->command_ = hdr_timp::UPDATE;
++	hdr->dst_id_ = 1;
++	hdr->dst_price_ = 1;
++ std::cout << "sending packet 1a" << std::endl;
++    send(pkt, 0);
++            
++            
++            std::cout << "sending packet 2" << std::endl;
++*/
++   nodeid_ = id;
++   
++   timpAgent = c;
++   
++   // set all prices to 0
++   memset(prices_nbr, 0, PRT_MAX * DST_MAX * sizeof(int));
++   memset(prices_prt, 0, PRT_MAX * sizeof(int));
++   memset(pricessent, 0, PRT_MAX * sizeof(int));
++   memset(flowlet_check_position, 0, DST_MAX * sizeof(int));
++   memset(flowhash, 0, DST_MAX * HASH_SIZE * sizeof(int));
++   memset(flowtime, 0, DST_MAX * HASH_SIZE * sizeof(double));
++   for (int i = 0; i < ALTRT_MAX; i++)
++      for (int j = 0; j <  DST_MAX; j++) {
++         alternateroutes[ALTRT_MAX * j + i] = -1;
++         previousSw[ALTRT_MAX * j + i] = -1;
++      }
++   //memset(alternateroutes, -1, ALTRT_MAX * DST_MAX * sizeof(int));
++   //memset(previousSw, -1, ALTRT_MAX * DST_MAX * sizeof(int));
++
++   // the following configuration 
++   // is performed by the controller  
++   
++   if (nodeid_ > 9) {
++      return;
++   }
++#ifdef DEBUG
++   std::cout << "initialize nodeid_: " << nodeid_ << std::endl;
++#endif
++
++#ifdef THREETIER
++
++   // nodeid_ is 0 or 1
++   if (nodeid_ == 0 || nodeid_ == 1) {
++      // for destination switches 2 and 4
++      for (int dst = 2; dst <= 4; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = 3;
++         alternateroutes[dst*ALTRT_MAX + 1] = 5;
++         
++         
++         previousSw[dst*ALTRT_MAX + 0] = 7;
++         previousSw[dst*ALTRT_MAX + 1] = 9;
++         
++         /*std::vector<int> previousSw;
++         previousSw.push_back(7);
++         previousSw.push_back(9);
++         previousSw.insert ( std::pair<int, std::vector<int> >(nodeid_, previousSw)  );*/
++      }
++      // for destination switches 6 and 8
++       for (int dst = 6; dst <= 8; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = 7;
++         alternateroutes[dst*ALTRT_MAX + 1] = 9;
++         
++         previousSw[dst*ALTRT_MAX + 0] = 3;
++         previousSw[dst*ALTRT_MAX + 1] = 5;
++         
++         /*std::vector<int> previousSw;
++         previousSw.push_back(3);
++         previousSw.push_back(5);
++         previousSw.insert ( std::pair<int, std::vector<int> >(nodeid_, previousSw) );*/
++      }
++   }
++   
++   // nodeid_ is 3 or 5
++   if (nodeid_ == 3 || nodeid_ == 5) {
++      // for destination switches 2 and 4
++      for (int dst = 2; dst <= 4; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = dst;
++         
++         previousSw[dst*ALTRT_MAX + 0] = 0;
++         previousSw[dst*ALTRT_MAX + 1] = 1;
++         
++         /*std::vector<int> previousSw;
++         previousSw.push_back(0);
++         previousSw.push_back(1);
++         previousSw.insert ( std::pair<int, std::vector<int> >(nodeid_, previousSw)  );*/
++      }
++      // for destination switches 6 and 8
++       for (int dst = 6; dst <= 8; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = 0;
++         alternateroutes[dst*ALTRT_MAX + 1] = 1;
++         
++         previousSw[dst*ALTRT_MAX + 0] = 2;
++         previousSw[dst*ALTRT_MAX + 1] = 4;
++         
++         /*std::vector<int> previousSw;
++         previousSw.push_back(dst);
++         previousSw.insert ( std::pair<int, std::vector<int> >(nodeid_, previousSw) );*/
++      }
++   }
++   
++   // nodeid_ is 7 or 9
++   if (nodeid_ == 7 || nodeid_ == 9) {
++      // for destination switches 2 and 4
++      for (int dst = 2; dst <= 4; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = 0;
++         alternateroutes[dst*ALTRT_MAX + 1] = 1;
++         
++         previousSw[dst*ALTRT_MAX + 0] = 6;
++         previousSw[dst*ALTRT_MAX + 1] = 8;
++         
++         /*std::vector<int> previousSw;
++         previousSw.push_back(dst);
++         previousSw.insert ( std::pair<int, std::vector<int> >(nodeid_, previousSw)  );*/
++      }
++      // for destination switches 6 and 8
++       for (int dst = 6; dst <= 8; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = dst;
++         
++         previousSw[dst*ALTRT_MAX + 0] = 0;
++         previousSw[dst*ALTRT_MAX + 1] = 1;
++         /*std::vector<int> previousSw;
++         previousSw.push_back(0);
++         previousSw.push_back(1);
++         previousSw.insert ( std::pair<int, std::vector<int> >(nodeid_, previousSw) );*/
++      }
++   }
++
++   // nodeid_ is 2 or 4
++   if (nodeid_ == 2 || nodeid_ == 4) {
++      // for destination switch 2
++      if (nodeid_ == 4) {
++         int dst = 2;
++         alternateroutes[dst*ALTRT_MAX + 0] = 3;
++         alternateroutes[dst*ALTRT_MAX + 1] = 5;
++      }
++      // for destination switch 4
++      if (nodeid_ == 2) {
++         int dst = 4;
++         alternateroutes[dst*ALTRT_MAX + 0] = 3;
++         alternateroutes[dst*ALTRT_MAX + 1] = 5;
++      }
++      // for destination switches 6 and 8
++       for (int dst = 6; dst <= 8; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = 3;
++         alternateroutes[dst*ALTRT_MAX + 1] = 5;
++      }
++   }
++   
++   // nodeid_ is 6 or 8
++   if (nodeid_ == 6 || nodeid_ == 8) {
++      // for destination switches 2 and 4
++       for (int dst = 2; dst <= 4; dst = dst+2) {
++         alternateroutes[dst*ALTRT_MAX + 0] = 7;
++         alternateroutes[dst*ALTRT_MAX + 1] = 9;
++      }
++      // for destination switch 6
++      if (nodeid_ == 8) {
++         int dst = 6;
++         alternateroutes[dst*ALTRT_MAX + 0] = 7;
++         alternateroutes[dst*ALTRT_MAX + 1] = 9;
++      }
++      // for destination switch 8
++      if (nodeid_ == 6) {
++         int dst = 8;
++         alternateroutes[dst*ALTRT_MAX + 0] = 7;
++         alternateroutes[dst*ALTRT_MAX + 1] = 9;
++      }
++   }
++
++#else
++   if (nodeid_ == 0 || nodeid_ == 2 || nodeid_ == 4 || nodeid_ == 6 || nodeid_ == 8) {
++      // for destination switches 2 and 4
++      for (int dst = 0; dst <= 8; dst = dst+2) {
++         if (nodeid_ != dst) {
++            alternateroutes[dst*ALTRT_MAX + 0] = 1;
++            alternateroutes[dst*ALTRT_MAX + 1] = 3;
++            //if (nodeid_ != 6)
++               alternateroutes[dst*ALTRT_MAX + 2] = 5;
++            alternateroutes[dst*ALTRT_MAX + 3] = 7;
++            alternateroutes[dst*ALTRT_MAX + 4] = 9;
++         }
++      }
++   }
++
++   if (nodeid_ == 1 || nodeid_ == 3 || nodeid_ == 5 || nodeid_ == 7 || nodeid_ == 9) {
++      // for destination switches 2 and 4
++         alternateroutes[0*ALTRT_MAX + 0] = 0;
++         alternateroutes[2*ALTRT_MAX + 0] = 2;
++         alternateroutes[4*ALTRT_MAX + 0] = 4;
++         //if (nodeid_ != 5)
++            alternateroutes[6*ALTRT_MAX + 0] = 6;
++         alternateroutes[8*ALTRT_MAX + 0] = 8;
++         
++         for (int dst = 0; dst <= 8; dst = dst+2) {
++            for (int prv = 0; prv <= 8; prv = prv+2) {
++
++                  if (dst != prv) {
++                     //if (!(dst == 6 && prv == 5))
++                     previousSw[dst*ALTRT_MAX + prv / 2] = prv;
++                     //std::cout << " previousSw nodeid_ " << nodeid_ << " dst " << dst << " prv " << prv << " index " << dst*ALTRT_MAX + prv / 2 << std::endl;
++                  }
++            }
++         }
++         
++   }
++
++   //std::cout << " printAlternateNeighbors nodeid_ " << nodeid_ << std::endl;
++   //printAlternateNeighbors();
++
++#endif
++
++}
++
++int Timp::server2tor(int server_id) {
++#ifdef THREETIER
++      if (server_id >= 10 && server_id <=25)
++         return 2;
++      if (server_id >= 26 && server_id <=41)
++         return 4;
++         
++      if (server_id >= 42 && server_id <=57)
++         return 6;
++      if (server_id >= 58 && server_id <=73)
++         return 8;
++#else
++   if (server_id >= 10 && server_id <=25)
++         return 0;
++   if (server_id >= 26 && server_id <=41)
++      return 2;
++      
++   if (server_id >= 42 && server_id <=57)
++      return 4;
++   if (server_id >= 58 && server_id <=73)
++      return 6;
++   if (server_id >= 74 && server_id <=89)
++      return 8;
++#endif
++#ifdef DEBUG         
++      std::cout << "server2tor error " << server_id << std::endl;
++#endif      
++      return -1;
++}
++
++// returns switch id of the best next hop for the flowlet
++int Timp::getNextHop(int dst_id, int& minprice) {
++#ifdef DEBUG
++   std::cout << "getNextHop dst_id " << dst_id << std::endl;
++#endif
++   if (nodeid_ > 9) {
++      return server2tor(nodeid_);
++   }
++   
++   int dst_tor_id = dst_id; 
++   
++   if (dst_id > 9) {
++   
++      dst_tor_id = server2tor(dst_id);
++   
++   }
++   
++   if (dst_tor_id == nodeid_) {
++      minprice = 0;
++      return dst_id;
++   }
++//#ifdef DEBUG
++   //std::cout << "getNextHop dst_tor_id " << dst_tor_id << " nodeid_ " << nodeid_ << std::endl;
++//#endif
++   //printAlternateNeighbors();
++
++   //std::cout << "getNextHop nodeid_ " << nodeid_ << " dst_tor_id " << dst_tor_id << std::endl;
++
++   int next_hop = -1;
++   minprice = INT_MAX;
++   int lastprtprice = INT_MAX;
++   for (int i = 0; i < ALTRT_MAX; i++) {
++      int nbr = alternateroutes[ALTRT_MAX * dst_tor_id + i];
++      //std::cout << "nbr " << nbr << std::endl;
++      if (nbr > -1) {
++         int price_nbr = prices_nbr[nbr*DST_MAX + dst_tor_id];
++         int price_prt = prices_prt[nbr];
++         int price = std::max(price_nbr, price_prt);
++#ifdef DEBUG
++          std::cout << "getNextHop nodeid_ " << nodeid_ << " price " << price << " minprice " << minprice << " price_prt " << price_prt << " lastprtprice " << lastprtprice << std::endl;
++#endif
++         if (price < minprice || (price == minprice && price_prt < lastprtprice)) {
++#ifdef DEBUG
++            std::cout << "getNextHop nodeid_ " << nodeid_ << " dst " << dst_tor_id << " nbr " << nbr << " price_nbr " << price_nbr << " price_prt " << price_prt << std::endl;
++#endif
++            minprice = price;
++            lastprtprice = price_prt;
++            next_hop = nbr;
++         }
++      }
++   }
++#ifdef DEBUG
++   std::cout << "getNextHop return " << next_hop << std::endl;
++#endif
++   return next_hop;
++}
++
++int Timp::handleUpdate(Packet* pkt, NsObject** slot_) {
++
++   hdr_timp *hdr = hdr_timp::access(pkt);
++   int dst_id = hdr->dst_id_;
++   int dst_price = hdr->dst_price_;
++
++   hdr_cmn *hdrc = hdr_cmn::access(pkt);
++   int sourceNbr = hdrc->iface(); // label iface contains neigbourid
++   
++#ifdef DEBUG
++   std::cout << Scheduler::instance().clock() << " rcv control packet node_id " << nodeid_ << " from " << hdrc->iface_ << " dst " << dst_id << " price " <<  dst_price  << std::endl;
++#endif 
++   
++   /*std::cout << "handleUpdate " << nodeid_ << std::endl;
++   
++   std::cout << "hdr->command_" << hdr->command_ << std::endl;
++   std::cout << "hdr->dst_id_" << hdr->dst_id_ << std::endl;
++   std::cout << "hdr->dst_price_" << hdr->dst_price_ << std::endl;
++   
++   
++   std::cout << "hdrc->next_hop_" << hdrc->next_hop_ << std::endl;
++   std::cout << "hdrc->addr_type_" << hdrc->addr_type_ << std::endl;
++   std::cout << "hdr->dst_price_" << hdr->dst_price_ << std::endl;*/
++         
++
++   
++   //
++   
++   prices_nbr[(sourceNbr)*DST_MAX + dst_id] = dst_price;
++   
++   //sendUpdate(dst_id, slot_);
++   //Packet::free(pkt);
++   return 0;
++}
++
++int Timp::sendUpdate(int dst_id, NsObject** slot_) {
++   
++   
++   
++   int minprice;
++#ifdef DEBUG
++   std::cout << "getNextHop b" << std::endl;
++#endif
++   getNextHop(dst_id, minprice);
++   
++   if (minprice != pricessent[dst_id]) {
++#ifdef DEBUG
++      std::cout << "sendUpdate " << nodeid_ << " send_cost " << " dst_id " << dst_id << " minprice  " << minprice << std::endl;
++#endif
++      send_cost(dst_id, minprice, slot_);
++      
++   }
++   
++}  
++
++int Timp::getDstTor(int dst_id) {
++
++   if (nodeid_ > 9) {
++      return server2tor(nodeid_);
++   }
++   
++   int dst_tor_id = server2tor(dst_id);
++   
++   /*if (dst_tor_id == nodeid_) {
++      return dst_tor_id;
++   }*/
++
++   return dst_tor_id;
++}
++
++int Timp::handlePacket(int dst, int fh, double curtime, double flowlet_win_, Packet *p, NsObject** slot_) {
++
++   /*std::cout << "handlePacket " << nodeid_ << std::endl;
++   //hdr_timp *hdr = hdr_timp::access(p);
++   hdr_ip* iph = hdr_ip::access(p);
++   hdr_cmn *hdrc = hdr_cmn::access(p);
++   //std::cout << "hdr->command_" << hdr->command_ << std::endl;
++   //std::cout << "hdr->dst_id_" << hdr->dst_id_ << std::endl;
++   //std::cout << "hdr->dst_price_" << hdr->dst_price_ << std::endl;
++   
++   
++   std::cout << "hdrc->next_hop_" << hdrc->next_hop_ << std::endl;
++   std::cout << "hdrc->addr_type_" << hdrc->addr_type_ << std::endl;
++   
++   std::cout << "iph->saddr()" << iph->saddr() << std::endl;
++   std::cout << "iph->daddr()" << iph->daddr() << std::endl;
++   std::cout << "iph->sport()" << iph->sport() << std::endl;
++   std::cout << "iph->dport()" << iph->dport() << std::endl;
++   std::cout << "hdrc->ptype_" << hdrc->ptype_ << std::endl;
++
++
++   std::cout << "// handlePacket " << nodeid_ << std::endl;
++   */
++
++
++   if (nodeid_ > 9) {
++      return server2tor(nodeid_);
++   }
++
++   hdr_cmn* ch = hdr_cmn::access(p);
++   if (ch->ptype_ == PT_TIMP){ 
++        
++        handleUpdate(p, slot_);
++        //Packet::free(p);
++        return -1;
++   }
++
++   int result; // next_hop
++
++   int dstid = getDstTor(dst);
++   if (dstid == nodeid_) {
++      return dst; // this flowlet exiting network at this switch
++   }
++
++
++   int outputifc = flowhash[dstid * HASH_SIZE + fh];
++   double elapsedtime = flowtime[dstid * HASH_SIZE + fh];
++
++ 
++   if (curtime < elapsedtime + flowlet_win_ && elapsedtime > 0) {
++      
++     // active flowlet
++     result = outputifc;
++     flowtime[dstid * HASH_SIZE + fh] = curtime;
++      
++     
++      
++   } else {
++   
++#ifdef DEBUG
++      if (elapsedtime > 0)
++         std::cout << "expiredFlowlet " << nodeid_ << " " << curtime - elapsedtime << " " << flowlet_win_ << std::endl;
++#endif   
++      // empty previous hash
++      if (elapsedtime > 0) {
++         flowtime[dstid * HASH_SIZE + fh] = 0;
++         flowhash[dstid * HASH_SIZE + fh] = 0;
++         prices_prt[(outputifc)]--;
++#ifdef DEBUG
++              std::cout << "removeFlowlet " << nodeid_ << std::endl;
++#endif
++      }
++      // choose next hop
++      int minprice;
++#ifdef DEBUG
++      std::cout << "getNextHop a" << std::endl;
++#endif
++    	result = getNextHop(dst, minprice);
++     /*int selectedoutputifc=alternaterutes[ALTRT_MAX * dstid]; //selectedroute->GetInterface ();
++     int price_nbr = prices_nbr[(selectedoutputifc-1)*DST_MAX + dstid];
++     int price_prt = prices_prt[(selectedoutputifc-1)];
++     int price = std::max(price_nbr, price_prt);
++
++      int minprice = price;
++      int maxprice = price;
++      int lastprtprice = price_prt;
++
++      for (int i = 1; i < ALTRT_MAX; i++) {
++         int prt = alternaterutes[ALTRT_MAX * dstid + i];
++         
++         if (prt > 0) {
++            price_nbr = prices_nbr[(prt-1)*DST_MAX + dstid];
++            price_prt = prices_prt[(prt-1)];
++            price = std::max(price_nbr, price_prt);
++    
++            // ako su cene jednake preferiramo rutu kojoj max util nije na susednom linku
++            if (price < minprice || (price == minprice && price_prt < lastprtprice)) {
++               minprice = price;
++               selectedoutputifc = prt;
++               lastprtprice = price_prt;
++
++            }
++            if (price > maxprice) 
++               maxprice = price;
++         }
++      }*/
++
++      // write hash
++      if (result >= 0) {
++            //send_cost(dstid, minprice+1, slot_); 
++#ifdef DEBUG
++            std::cout << "addFlowlet " << nodeid_ << " sendUpdate " << std::endl;
++#endif
++            sendUpdate(dstid, slot_);
++            flowhash[dstid * HASH_SIZE + fh] = result;
++            flowtime[dstid * HASH_SIZE + fh] = curtime;
++            prices_prt[(result)]++;
++            portflows[result]++;
++            porthashes[result]++;
++     
++            
++            /*if (nodeid_ == 2) {
++            
++            
++            
++            NsObject* o = slot_[5];
++            Packet* p1 = origCltPkt->copy();
++            printPacket(p1);
++            hdr_cmn* ch1 = hdr_cmn::access(p1);
++            //ch1->iface_ = nodeid_;
++            o->recv(p1);
++            
++            }*/
++            
++      }
++
++      }
++      
++      // check one hash entry per packet
++      checkExpiredFlowlet(dst, curtime, flowlet_win_, slot_);
++      
++      //std::cout << "addFlowlet result " << result  << std::endl;
++      
++
++      
++      return result;
++}
++
++void Timp::printPacket(Packet *p) {
++   
++   hdr_ip* iph = hdr_ip::access(p);
++   hdr_cmn *hdrc = hdr_cmn::access(p);
++   
++   
++   std::cout << "hdrc->next_hop_" << hdrc->next_hop_ << std::endl;
++   std::cout << "hdrc->addr_type_" << hdrc->addr_type_ << std::endl;
++   std::cout << "hdrc->ts_" << hdrc->ts_ << std::endl;          
++   std::cout << "hdrc->ptype_" << hdrc->ptype_ << std::endl;      
++   std::cout << "hdrc->uid_" << hdrc->uid_ << std::endl;         
++   std::cout << "hdrc->size_" << hdrc->size_ << std::endl;        
++   std::cout << "hdrc->iface_" << hdrc->iface_ << std::endl;       
++   
++   
++   std::cout << "hdrc->size_" << hdrc->size_ << std::endl;		// simulated packet size
++	std::cout << "hdrc->uid_" << hdrc->uid_ << std::endl;		// unique id
++	std::cout << "hdrc->error_" << hdrc->error_ << std::endl;		// error flag
++	std::cout << "hdrc->errbitcnt_" << hdrc->errbitcnt_ << std::endl;     // # of corrupted bits jahn
++	std::cout << "hdrc->fecsize_" << hdrc->fecsize_ << std::endl;
++	std::cout << "hdrc->ts_" << hdrc->ts_ << std::endl;		// timestamp: for q-delay measurement
++	std::cout << "hdrc->iface_" << hdrc->iface_ << std::endl;		// receiving interface (label)
++	std::cout << "hdrc->direction_" << hdrc->direction_ << std::endl;	// direction: 0=none, 1=up, -1=down
++	// source routing 
++   std::cout << "hdrc->src_rt_valid" << hdrc->src_rt_valid << std::endl;
++	std::cout << "hdrc->ts_arr_" << hdrc->ts_arr_ << std::endl; // Required by Marker of JOBS 
++
++    // CONGA extension
++   /* int conga_uplink;
++    double conga_util;
++    int feedback_uplink;
++    double feedback_util;
++*/
++	//Monarch extn begins
++	std::cout << "hdrc->prev_hop_" << hdrc->prev_hop_ << std::endl;     // IP addr of forwarding hop
++	std::cout << "hdrc->next_hop_" << hdrc->next_hop_ << std::endl;	// next hop for this packet
++	std::cout << "hdrc->addr_type_" << hdrc->addr_type_ << std::endl;    // type of next_hop_ addr
++	std::cout << "hdrc->last_hop_" << hdrc->last_hop_ << std::endl;     // for tracing on multi-user channels
++   
++   
++   std::cout << "iph->saddr()" << iph->saddr() << std::endl;
++   std::cout << "iph->daddr()" << iph->daddr() << std::endl;
++   std::cout << "iph->sport()" << iph->sport() << std::endl;
++   std::cout << "iph->dport()" << iph->dport() << std::endl;
++   std::cout << "hdrc->ptype_" << hdrc->ptype_ << std::endl;
++
++
++}
++
++/*int Timp::addFlowlet(int src, int dst, int sport, int dport, int proto, double last_seen_time, int last_best_hop, NsObject** slot_) {
++
++#ifdef DEBUG
++   std::cout << "addFlowlet" << std::endl;
++#endif
++
++   Flowlet f;
++   f.src = src;
++   f.dst = dst;
++   f.sport = sport;
++   f.dport = dport;
++   f.proto = proto;
++   f.last_seen_time = last_seen_time;
++   f.last_best_hop = last_best_hop;
++   f.active = true;
++
++   // first get port on which flowlet exits
++   int minprice; 		
++   int next_hop = getNextHop(dst, minprice);
++
++#ifdef DEBUG
++   std::cout << "addFlowlet get destination tor" << std::endl;
++#endif
++
++   // get destination tor
++   int dst_tor_id = getDstTor(f.dst);
++   if (dst_tor_id == nodeid_) {
++      return 0; // this flowlet exiting network at this switch
++   }
++   
++#ifdef DEBUG
++   std::cout << "addFlowlet add flowlet pointer to local data structure" << std::endl;
++#endif
++
++   // add flowlet pointer to local data structure
++   if ( (*flowlets).find(dst_tor_id) == (*flowlets).end() ) {
++      std::cout << "a" << std::endl;
++      std::vector<Flowlet> *flowlet_vec = new std::vector<Flowlet>();
++      std::cout << "b" << std::endl;
++      flowlet_vec->push_back(f);
++      std::cout << "c" << std::endl;
++      // std::vector<Flowlet> vect2(flowlet_list);
++      std::pair<int, std::vector<Flowlet>* > a(dst_tor_id,flowlet_vec);
++      //flowlets[dst_tor_id] = flowlet_list;
++      //std::vector<Flowlet*> flowlet_list1;
++      //flowlet_list1.push_back(&f);
++      //flowlets1.insert ( std::make_pair(dst_tor_id, flowlet_list1) );
++      std::cout << "d " << std::endl;
++      flowlets->insert ( a );
++      std::cout << "e" << std::endl;
++   } else {
++      (*flowlets)[dst_tor_id]->push_back(f);
++   }
++   
++#ifdef DEBUG
++   std::cout << "addFlowlet increment port flows count" << std::endl;
++#endif
++   
++   // increment port flows count
++   prices_prt[(next_hop-1)]++;
++   
++#ifdef DEBUG
++   std::cout << "addFlowlet send updates" << std::endl;
++#endif
++   
++   // send updates if price to flowlet destination tor changed
++   sendUpdate(dst_tor_id, slot_);
++   
++#ifdef DEBUG
++   std::cout << "addFlowlet exit" << std::endl;
++#endif
++   
++   return 0;
++}*/
++
++/*bool Timp::compareFlowlets(Flowlet& f1, Flowlet& f2) {
++   bool result = false;
++   if (f1.src == f2.src && f1.dst == f2.dst && f1.sport == f2.sport && f1.dport == f2.dport && f1.proto == f2.proto) 
++      result = true;
++   
++   return result;
++}*/
++
++// if changed port update prices
++/*int Timp::updateFlowlet(int src, int dst, int sport, int dport, int proto, double last_seen_time, int last_best_hop, NsObject** slot_) {
++
++   std::cout << "updateFlowlet" << std::endl;
++
++
++
++    // first get port on which flowlet exits
++   int minprice; 		
++   int next_hop = getNextHop(dst, minprice);
++
++   // get destination tor
++   int dst_tor_id = getDstTor(f.dst);
++   if (dst_tor_id == nodeid_) {
++      return 0; // this flowlet exiting network at this switch
++   }
++   
++   flowlets[dst_tor_id][check_pos]
++
++   Flowlet f;
++   f.src = src;
++   f.dst = dst;
++   f.sport = sport;
++   f.dport = dport;
++   f.proto = proto;
++   f.last_seen_time = last_seen_time;
++   f.last_best_hop = last_best_hop;
++   f.active = true;
++
++   // find port on which flowlet is located
++   if ( (*flowlets).find(dst_tor_id) == (*flowlets).end() ) {
++      std::vector<Flowlet>::iterator it;
++      bool found = false;
++      for (it = (*flowlets)[dst_tor_id]->begin(); it != (*flowlets)[dst_tor_id]->end(); ++it){
++          if (compareFlowlets(*it, f)) {
++            if (it->last_best_hop != next_hop) {
++               // change prices            
++               prices_prt[(last_best_hop-1)]--;
++               prices_prt[(next_hop-1)]++;
++               it->last_best_hop = next_hop;
++               it->last_seen_time = last_seen_time;
++               found = true;
++               break;
++            }
++            break;
++          }
++      }
++      if (!found) {
++         (*flowlets)[dst_tor_id]->push_back(f);
++         prices_prt[(next_hop-1)]++;
++      }
++   } else
++      std::cout << "updateFlowlet error" << std::endl; 
++
++   // send updates if price to flowlet destination tor changed
++   sendUpdate(dst_tor_id, slot_);
++
++   return 0;
++}*/
++
++// invariant check: does flowlet
++// output port belong to alternate ports 
++/*int Timp::checkFlowlet(int src, int dst, int sport, int dport, int proto, double last_seen_time, int last_best_hop) {
++
++   Flowlet f;
++   f.src = src;
++   f.dst = dst;
++   f.sport = sport;
++   f.dport = dport;
++   f.proto = proto;
++   f.last_seen_time = last_seen_time;
++   f.last_best_hop = last_best_hop;
++
++   // get destination tor
++   int dst_tor_id = getDstTor(f.dst);
++   if (dst_tor_id == nodeid_) {
++      return 0; // this flowlet exiting network at this switch
++   }
++   
++   bool found = false;
++   for (int i = 0; i < ALTRT_MAX; i++) 
++      if (alternateroutes[dst_tor_id*ALTRT_MAX + i] == last_best_hop) {
++         found = true;
++         break;
++      }
++      
++  if (!found) 
++      std::cout << "checkFlowlet error" << std::endl; 
++      
++  return 0;
++}*/
++
++// check next flowlet for given destination for expiration
++int Timp::checkExpiredFlowlet(int dst_id, double current_time, double flowlet_win_, NsObject** slot_) {
++
++   //std::cout << "checkExpiredFlowlet" << std::endl;
++
++   // get destination tor
++   int dst_tor_id = getDstTor(dst_id);
++   
++   //std::cout << "checkExpiredFlowleta" << std::endl;
++   int check_pos = flowlet_check_position[dst_tor_id];
++   
++   if (flowlet_check_position[dst_tor_id] < HASH_SIZE)
++      flowlet_check_position[dst_tor_id]++;
++   else
++      flowlet_check_position[dst_tor_id] = 0;
++   
++   
++/*   if ( (*flowlet_check_position).find(dst_tor_id) == (*flowlet_check_position).end() ) {
++      (*flowlet_check_position).insert(std::pair<int, int > (dst_tor_id, check_pos));
++   } else {
++      check_pos = (*flowlet_check_position)[dst_tor_id]++;
++   }*/
++   
++   
++   
++   //std::cout << "checkExpiredFlowlet b" << std::endl;
++   
++   /*if ( (*flowlets).find(dst_tor_id) != (*flowlets).end() ) {
++      if ((*flowlets)[dst_tor_id]->size() > 0) {
++         if ((*flowlets)[dst_tor_id]->size() >= check_pos) {
++               check_pos = 0;
++               (*flowlet_check_position)[dst_tor_id] = check_pos;
++         }
++         // check expired and remove from list if expired
++         if (current_time - (*flowlets)[dst_tor_id]->at(check_pos).last_seen_time  > flowlet_win_) {
++            prices_prt[((*flowlets)[dst_tor_id]->at(check_pos).last_best_hop-1)]--;
++            (*flowlets)[dst_tor_id]->erase((*flowlets)[dst_tor_id]->begin() + check_pos);
++         }
++      }
++   }*/
++   
++   /*if (flowlets[dst_tor_id][check_pos].active))
++      if (current_time - flowlets[dst_tor_id][check_pos].last_seen_time  > flowlet_win_) {
++         prices_prt[flowlets[dst_tor_id][check_pos].last_best_hop-1)]--;
++         flowlets[dst_tor_id][check_pos].active = false;
++      }*/
++      
++   int outputifc = flowhash[dst_tor_id * HASH_SIZE + check_pos];
++   double elapsedtime = flowtime[dst_tor_id * HASH_SIZE + check_pos];
++      
++      
++   if (current_time > elapsedtime + flowlet_win_ && elapsedtime > 0) {
++#ifdef DEBUG
++         std::cout << "checkExpiredFlowlet expired" << std::endl;
++#endif
++         flowtime[dst_tor_id* HASH_SIZE + check_pos] = 0;
++         flowhash[dst_tor_id * HASH_SIZE + check_pos] = 0;
++         prices_prt[(outputifc)]--;
++   
++   }
++   
++   //std::cout << "checkExpiredFlowlet c" << std::endl;
++   
++   // send updates if price to flowlet destination tor changed
++   sendUpdate(dst_tor_id, slot_);
++   
++   return 0;
++}
++
++Packet * Timp::send_cost_2(int dstId, int dstPrice, int next_hop) {
++
++   //std::cout << "send_cost_2 " << nodeid_ << " dst " << next_hop << " routeDst " << dstId << " routePrice " << dstPrice << std::endl;
++
++   static int uidcnt = 0;
++
++  	//Packet* pkt = allocpkt(); //Packet::alloc();
++  	Packet* pkt = origCltPkt->copy();
++  	//initpkt(pkt);
++	hdr_timp *hdr = hdr_timp::access(pkt);
++	hdr->command_ = hdr_timp::UPDATE;
++	hdr->dst_id_ = dstId;
++	hdr->dst_price_ = dstPrice;
++	
++	//send(pkt, 0);
++
++   hdr_cmn *hdrc = hdr_cmn::access(pkt);
++   hdrc->size() = 100;
++   hdrc->ptype_ = PT_TIMP;
++	//hdr_cmn *hdrc = hdr_cmn::access(pkt);
++	hdrc->next_hop_ = next_hop;
++	//hdrc->last_hop_ = nodeid_;
++	//hdrc->addr_type_ = NS_AF_INET;
++
++   //hdrc->uid() = uidcnt ++;
++   //hdrc->ptype_ = PT_TIMP;
++    
++
++   //hdrc->iface_ = -1; //dstId; //nodeid_;
++   
++   //hdrc->uid_ = 1;*/
++   //hdrc->ts_ = 1;
++   
++   /*hdr_ip* iph = hdr_ip::access(pkt);
++   iph->saddr() = nodeid_; 
++   iph->daddr() = next_hop;
++   iph->sport() = 1;
++   iph->dport() = 1;
++   iph->ttl_ = 1;*/
++   /*double current_time = Scheduler::instance().clock();
++
++   hdrc->next_hop_ = -2;
++   hdrc->addr_type_ = 0;
++   hdrc->ts_ = current_time;
++   //hdrc->ptype_ = 2;
++   //hdrc->uid_ = 0;
++   hdrc->size_ = 1000;
++   hdrc->iface_ = 10;
++   hdrc->size_ = 1000;
++   hdrc->uid_ = 0;
++   hdrc->error_ = 0;
++   hdrc->errbitcnt_ = 0;
++   hdrc->fecsize_ = 0;
++   hdrc->ts_ = 400;
++   hdrc->iface_ = 10;
++   hdrc->ts_arr_ = 0;
++   hdrc->prev_hop_ = 0;
++   //hdrc->next_hop_ = -2;
++   //hdrc->addr_type_ = 0;
++   //hdrc->last_hop_ = -2;
++   hdrc->txtime_ = current_time;
++  */
++
++   //send(pkt, 0);
++
++	return pkt;
++
++	//send(pkt, 0);
++
++  /*Ptr<Packet> p = Create<Packet> ();
++  SocketIpTtlTag tag;
++  p->RemovePacketTag (tag);
++  tag.SetTtl (1);
++  p->AddPacketTag (tag);
++
++  Ipv4Address dstAdr(adr.c_str());
++
++  TimpUpdateHeader hdr;
++  hdr.SetCommand (TimpUpdateHeader::UPDATE);
++  hdr.SetDstId (dstId);
++  hdr.SetDstPrice (dstPrice);
++
++  p->AddHeader (hdr);
++
++
++  sendingSocket->SendTo (p, 0, InetSocketAddress (dstAdr, TIMP_PORT));
++  p->RemoveHeader (hdr);*/
++
++}
++
++void Timp::send_cost(int dstId, int dstPrice, NsObject** slot_) { 
++#ifdef DEBUG
++  std::cout << Scheduler::instance().clock() << " send_cost from " << nodeid_ << " dstId " << dstId << " dstPrice " << dstPrice << std::endl;
++#endif
++  for (int i = 0; i < ALTRT_MAX; i++) {
++      int prvSw = previousSw[ALTRT_MAX * dstId + i];
++          // send copies
++      	  //for (int i = 0; i < maxslot_; i++) {
++      	  
++     if (prvSw > -1) {
++     
++        
++      	  
++        NsObject* o = slot_[prvSw];
++
++        if (o != 0) { 
++
++            Packet *p = send_cost_2(dstId, dstPrice, prvSw);
++            
++            
++            hdr_cmn* ch1 = hdr_cmn::access(p);
++            ch1->iface_ = nodeid_;
++
++            o->recv(p);
++
++
++    	}
++      }
++     } 
++
++   pricessent[dstId] = dstPrice;
++}
++
++
++void Timp::printStatistics() {
++
++   std::cout << "Switch " << nodeid_ << std::endl;
++
++   for (int i = 0; i < PRT_MAX; i++)
++      if (portflows[i] != 0) 
++         std::cout << " Port " << i << " flows " << portflows[i] << std::endl;   
++
++
++   for (int i = 0; i < PRT_MAX; i++)
++      if (porthashes[i] != 0) 
++         std::cout << " Port " << i << " porthashes " << porthashes[i] << std::endl;
++
++}
++
++void Timp::setOrigPkt(Packet *p) {
++#ifdef DEBUG
++   std::cout << " setOrigPkt " << std::endl;
++#endif
++   origCltPkt = p;
++}
++
+diff -ruN ns-2.35/hula/timp.h ns-2.35-1/hula/timp.h
+--- ns-2.35/hula/timp.h	1970-01-01 01:00:00.000000000 +0100
++++ ns-2.35-1/hula/timp.h	2021-01-30 17:58:40.102900000 +0100
+@@ -0,0 +1,104 @@
++
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License version 2 as
++// published by the Free Software Foundation;
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// You should have received a copy of the GNU General Public License
++// along with this program; if not, write to the Free Software
++// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++//
++// Author: Natasa Maksic
++//
++
++#ifndef TIMP_H
++#define TIMP_H
++
++#include <map>
++#include <vector>
++#include "packet.h"
++
++#include <memory>
++#include "agent.h"
++
++#include "timp_agent.h"
++
++#define HASH_SIZE 256
++#define DST_MAX 16
++#define PRT_MAX 20
++
++#define ALTRT_MAX 5
++
++
++//: public Agent
++class Timp 
++{
++public:
++
++   Timp();
++   Timp(int id);
++   void initialize(int id, TimpAgent *c);
++   
++   //int addFlowlet(int src, int dst, int sport, int dport, int proto, double last_seen_time, int last_best_hop, NsObject** slot_);
++   //int updateFlowlet(int src, int dst, int sport, int dport, int proto, double last_seen_time, int last_best_hop, NsObject** slot_);
++   int handlePacket(int dst, int fh, double curtime, double flowlet_win_, Packet *p, NsObject** slot_);
++   //int checkFlowlet(int src, int dst, int sport, int dport, int proto, double last_seen_time, int last_best_hop);
++   //virtual void recv(Packet* p, Handler*);
++   
++
++   void setOrigPkt(Packet *p);
++private:
++
++   int nodeid_;
++   // Indices contain neighbor switch identifiers, array contains destination ToR switch identifiers
++   int alternateroutes[ALTRT_MAX * DST_MAX]; 
++   // For each destination switch id, contans list of predecesors on the path to that switch
++   //std::map<int, std::vector<int> > previousSw;
++   int previousSw[ALTRT_MAX * DST_MAX]; 
++   // Utilizations received from neighbouring switch for each destinaton.
++   // These are link maximal utilization on the path to the destination
++   int prices_nbr[PRT_MAX * DST_MAX];
++   // Switch link utioizations
++   int prices_prt[PRT_MAX];
++   // last sent price for the destination
++   int pricessent[DST_MAX];
++   // flowlet check position
++   int flowlet_check_position[DST_MAX];
++   // flowlets
++   //Flowlet flowlets[DST_MAX * HASH_SIZE];
++   int flowhash[HASH_SIZE * DST_MAX];
++   double flowtime[HASH_SIZE * DST_MAX];
++   
++   // for debugging
++   long portflows[PRT_MAX];
++   // for debugging
++   long porthashes[PRT_MAX];
++   
++   // for sending control messages
++   TimpAgent *timpAgent;
++   
++   Packet *origCltPkt;
++   
++   Packet * send_cost_2(int dstId, int dstPrice, int next_hop); 
++   void send_cost(int dstId, int dstPrice, NsObject** slot_);
++   int server2tor(int server_id);
++   void printAlternateNeighbors();
++   int getDstTor(int dst_id);
++   //bool compareFlowlets(Flowlet& f1, Flowlet& f2);
++   int sendUpdate(int dst_id, NsObject** slot_);
++   int getNextHop(int dst_id, int& minprice);
++   int handleUpdate(Packet* pkt, NsObject** slot_);
++   int checkExpiredFlowlet(int dst_id, double current_time, double flowlet_win_, NsObject** slot_);
++   void printStatistics();
++   void printPacket(Packet *p);
++   
++};
++
++
++
++#endif /* TIMP_H */
+Binary files ns-2.35/indep-utils/cmu-scen-gen/setdest/calcdest and ns-2.35-1/indep-utils/cmu-scen-gen/setdest/calcdest differ
+diff -ruN ns-2.35/indep-utils/cmu-scen-gen/setdest/Makefile ns-2.35-1/indep-utils/cmu-scen-gen/setdest/Makefile
+--- ns-2.35/indep-utils/cmu-scen-gen/setdest/Makefile	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/indep-utils/cmu-scen-gen/setdest/Makefile	2021-02-16 20:10:04.851187000 +0100
+@@ -54,7 +54,7 @@
+ 
+ # when including files from ns, we need to take care STL_NAMESPACE
+ DEFINE = -Dstand_alone -DSTL_NAMESPACE=@STL_NAMESPACE@ -DCPP_NAMESPACE=std
+-CFLAGS = -O2 -Wall -Wno-write-strings 
++CFLAGS =  -Wall -Wno-write-strings -Wno-narrowing 
+ LDFLAGS = 
+ LIBS =  -lnsl -ldl -lm -lm 
+ INSTALL = /usr/bin/install -c
+diff -ruN ns-2.35/indep-utils/webtrace-conv/dec/Makefile ns-2.35-1/indep-utils/webtrace-conv/dec/Makefile
+--- ns-2.35/indep-utils/webtrace-conv/dec/Makefile	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/indep-utils/webtrace-conv/dec/Makefile	2021-02-16 20:10:04.687194000 +0100
+@@ -52,10 +52,10 @@
+ BINDEST = /usr/local/bin
+ 
+ CC = g++
+-INCLUDE = -I. -I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap
+-CFLAGS = -O2 -Wall -Wno-write-strings -DCPP_NAMESPACE=std
++INCLUDE = -I. -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap
++CFLAGS =  -Wall -Wno-write-strings -Wno-narrowing -DCPP_NAMESPACE=std
+ LDFLAGS = 
+-LIBS = -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
++LIBS = -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
+ INSTALL = /usr/bin/install -c
+ 
+ SRC = proxytrace.cc formsquid.cc formtxt.cc my-endian.cc \
+diff -ruN ns-2.35/indep-utils/webtrace-conv/epa/Makefile ns-2.35-1/indep-utils/webtrace-conv/epa/Makefile
+--- ns-2.35/indep-utils/webtrace-conv/epa/Makefile	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/indep-utils/webtrace-conv/epa/Makefile	2021-02-16 20:10:04.799190000 +0100
+@@ -49,10 +49,10 @@
+ CC = g++
+ MKDEP	= ../../../conf/mkdep
+ 
+-INCLUDE = -I. -I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap
+-CFLAGS = -O2 -Wall -Wno-write-strings -DCPP_NAMESPACE=std
++INCLUDE = -I. -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap
++CFLAGS =  -Wall -Wno-write-strings -Wno-narrowing -DCPP_NAMESPACE=std
+ LDFLAGS = 
+-LIBS = -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
++LIBS = -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
+ INSTALL = /usr/bin/install -c
+ 
+ SRC = tr-stat.cc
+diff -ruN ns-2.35/indep-utils/webtrace-conv/nlanr/Makefile ns-2.35-1/indep-utils/webtrace-conv/nlanr/Makefile
+--- ns-2.35/indep-utils/webtrace-conv/nlanr/Makefile	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/indep-utils/webtrace-conv/nlanr/Makefile	2021-02-16 20:10:04.747192000 +0100
+@@ -49,10 +49,10 @@
+ BINDEST = /usr/local/bin
+ 
+ CC = g++
+-INCLUDE = -I. -I../../.. -I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap
+-CFLAGS = -O2 -Wall -Wno-write-strings -DCPP_NAMESPACE=std
++INCLUDE = -I. -I../../.. -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap
++CFLAGS =  -Wall -Wno-write-strings -Wno-narrowing -DCPP_NAMESPACE=std
+ LDFLAGS = 
+-LIBS = -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
++LIBS = -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
+ INSTALL = /usr/bin/install -c
+ 
+ SRC = tr-stat.cc logparse.cc
+diff -ruN ns-2.35/indep-utils/webtrace-conv/ucb/Makefile ns-2.35-1/indep-utils/webtrace-conv/ucb/Makefile
+--- ns-2.35/indep-utils/webtrace-conv/ucb/Makefile	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/indep-utils/webtrace-conv/ucb/Makefile	2021-02-16 20:10:04.607198000 +0100
+@@ -27,10 +27,10 @@
+ CC = g++
+ MKDEP	= ../../../conf/mkdep
+ 
+-INCLUDE = -I. -I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap
+-CFLAGS = -O2 -Wall -Wno-write-strings -DCPP_NAMESPACE=std
++INCLUDE = -I. -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap
++CFLAGS =  -Wall -Wno-write-strings -Wno-narrowing -DCPP_NAMESPACE=std
+ LDFLAGS = 
+-LIBS = -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
++LIBS = -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 
+ INSTALL = /usr/bin/install -c
+ 
+ SRC = tr-stat.cc logparse.cc utils.cc
+diff -ruN ns-2.35/Makefile ns-2.35-1/Makefile
+--- ns-2.35/Makefile	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/Makefile	2021-02-16 20:10:04.483203000 +0100
+@@ -38,7 +38,7 @@
+ LINK	= $(CPP)
+ LINK_SHLIB = gcc -shared
+ MKDEP	= ./conf/mkdep
+-TCLSH	= /home/nkatta/ns2/ns-allinone-2.35/bin/tclsh8.5
++TCLSH	= /home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/bin/tclsh8.5
+ TCL2C	= ../tclcl-1.20/tcl2c++
+ AR	= ar rc $(BLANK)
+ 
+@@ -53,7 +53,7 @@
+ # for diffusion
+ #DIFF_INCLUDES = "./diffusion3/main ./diffusion3/lib ./diffusion3/nr ./diffusion3/ns"
+ 
+-CCOPT	= -O2 -Wall -Wno-write-strings 
++CCOPT	=  -Wall -Wno-write-strings -Wno-narrowing 
+ STATIC	= 
+ #LDFLAGS	= $(STATIC)
+ LDFLAGS	=  -Wl,-export-dynamic 
+@@ -64,7 +64,7 @@
+ INCLUDES = \
+ 	-I.  \
+ 	-I. \
+-	-I/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -I/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/home/nkatta/ns2/ns-allinone-2.35/include -I/usr/include/pcap \
++	-I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/include -I/usr/include/pcap \
+ 	-I./tcp -I./sctp -I./common -I./link -I./queue \
+ 	-I./adc -I./apps -I./mac -I./mobile -I./trace \
+ 	-I./routing -I./tools -I./classifier -I./mcast \
+@@ -76,7 +76,7 @@
+ 
+ 
+ LIB	= \
+-	-L/home/nkatta/ns2/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/nkatta/ns2/ns-allinone-2.35/otcl-1.14 -lotcl -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltk8.5 -L/home/nkatta/ns2/ns-allinone-2.35/lib -ltcl8.5 \
++	-L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/otcl-1.14 -lotcl -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltk8.5 -L/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/lib -ltcl8.5 \
+ 	-lXext -lX11 \
+ 	 -lnsl -ldl \
+ 	-lm -lm 
+@@ -329,6 +329,7 @@
+ 	xcp/xcpq.o xcp/xcp.o xcp/xcp-end-sys.o \
+     hula/hdr_hula.o hula/hula_agent.o hula/hula_classifier.o hula/workload.o hula/ezio.o hula/empvariate.o hula/expvariate.o hula/onoffapp.o hula/statcollector.o\
+     hula/rpc_empvariate.o hula/rpcgenerator.o\
++    hula/hdr_timp.o hula/timp.o hula/timp_agent.o \
+ 	wpan/p802_15_4csmaca.o wpan/p802_15_4fail.o \
+ 	wpan/p802_15_4hlist.o wpan/p802_15_4mac.o \
+ 	wpan/p802_15_4nam.o wpan/p802_15_4phy.o \
+diff -ruN ns-2.35/Makefile.in ns-2.35-1/Makefile.in
+--- ns-2.35/Makefile.in	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/Makefile.in	2021-02-16 15:49:39.346743000 +0100
+@@ -329,6 +329,7 @@
+ 	xcp/xcpq.o xcp/xcp.o xcp/xcp-end-sys.o \
+     hula/hdr_hula.o hula/hula_agent.o hula/hula_classifier.o hula/workload.o hula/ezio.o hula/empvariate.o hula/expvariate.o hula/onoffapp.o hula/statcollector.o\
+     hula/rpc_empvariate.o hula/rpcgenerator.o\
++    hula/hdr_timp.o hula/timp.o hula/timp_agent.o \
+ 	wpan/p802_15_4csmaca.o wpan/p802_15_4fail.o \
+ 	wpan/p802_15_4hlist.o wpan/p802_15_4mac.o \
+ 	wpan/p802_15_4nam.o wpan/p802_15_4phy.o \
+diff -ruN ns-2.35/tcl/lib/ns-autoconf.tcl ns-2.35-1/tcl/lib/ns-autoconf.tcl
+--- ns-2.35/tcl/lib/ns-autoconf.tcl	2016-03-12 18:46:03.000000000 +0100
++++ ns-2.35-1/tcl/lib/ns-autoconf.tcl	2021-02-16 20:10:04.547201000 +0100
+@@ -40,9 +40,9 @@
+ 	The wrong version of perl may break the test suites.\
+ 	Reconfigure and rebuild ns if this is a problem.\
+ "
+-checkout_executable TCLSH "/home/nkatta/ns2/ns-allinone-2.35/bin/tclsh8.5" tclsh "\
++checkout_executable TCLSH "/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/bin/tclsh8.5" tclsh "\
+ 	When configured, ns found the right version of tclsh in\
+-	/home/nkatta/ns2/ns-allinone-2.35/bin/tclsh8.5
++	/home/ubuntu/hdd/sharedhuladelivery/compilens2/ns-allinone-2.35/bin/tclsh8.5
+ 	but it doesn't seem to be there anymore, so\
+ 	ns will fall back on running the first tclsh in your path.\
+ 	The wrong version of tclsh may break the test suites.\
