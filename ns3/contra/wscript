@@ -1,0 +1,23 @@
+
+def build(bld):
+    module = bld.create_ns3_module('contra', ['internet'])
+    module.includes = '.'
+    module.source = [
+        'model/contra.cc',
+        'model/contra-header.cc',
+        'model/contra-global.cc',
+        'helper/contra-helper.cc',
+        ]
+
+
+    headers = bld(features='ns3header')
+    headers.module = 'contra'
+    headers.source = [
+        'model/contra.h',
+        'model/contra-header.h',
+        'model/contra-global.h',
+        'helper/contra-helper.h',
+        ]
+
+
+    bld.ns3_python_bindings()
