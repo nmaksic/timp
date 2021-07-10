@@ -21,15 +21,25 @@ import os.path
 import sys
 import shutil
 
-		
-def throughputgraphs(imagename, fajl1, fajl2, fajl3, fajl4, legend1, legend2):
+def sortlist(linestr):
+	a=[x.strip() for x in linestr.split(' ')]
+	a=a[1:]
+	ai = [int(x) for x in a]
+	ais = sorted(ai)
+	s = ' '.join(str(x) for x in ais)
+	return s
+
+def throughputgraphs(imagename, fajl1, fajl2, fajl3, fajl4, fajl5, fajl6, legend1, legend2, legend3):
 	
 	myFile = open('dropped.m','w')
 	print >>myFile, "function dropped()"
+	
+	print >>myFile, "graphics_toolkit(\"gnuplot\")"
 
 	f = open(fajl1, 'r+')
 	lines = f.readlines()	
-	print >>myFile, "flowduration=[ " + lines[0] + "]"
+	sortedstr = sortlist(lines[0]) #lines[0]
+	print >>myFile, "flowduration=[ " + sortedstr + "]"
 	f.close()
 
 	f = open(fajl2, 'r+')
@@ -39,7 +49,8 @@ def throughputgraphs(imagename, fajl1, fajl2, fajl3, fajl4, legend1, legend2):
 
 	f = open(fajl3, 'r+')
 	lines = f.readlines()	
-	print >>myFile, "flowduration1=[ " + lines[0] + "]"
+	sortedstr = sortlist(lines[0]) #lines[0]
+	print >>myFile, "flowduration1=[ " + sortedstr + "]"
 	f.close()
 
 	f = open(fajl4, 'r+')
@@ -47,11 +58,21 @@ def throughputgraphs(imagename, fajl1, fajl2, fajl3, fajl4, legend1, legend2):
 	print >>myFile, "flowcount1=[ " + lines[0] + "]"
 	f.close()
 
+	f = open(fajl5, 'r+')
+	lines = f.readlines()	
+	sortedstr = sortlist(lines[0]) #lines[0]
+	print >>myFile, "flowduration2=[ " + sortedstr + "]"
+	f.close()
+
+	f = open(fajl6, 'r+')
+	lines = f.readlines()	
+	print >>myFile, "flowcount2=[ " + lines[0] + "]"
+	f.close()
 
 
-	print >>myFile, "plot(flowcount, flowduration, '-^', flowcount1, flowduration1, '--');"
-	print >>myFile, "legend('" + legend1 + "', '" + legend2 + "');"
-	print >>myFile, "xlabel('Flow finish place');"
+	print >>myFile, "plot(flowcount, flowduration, '-', flowcount1, flowduration1, '--', flowcount2, flowduration2, '-.');"
+	print >>myFile, "legend('" + legend1 + "', '" + legend2 + "', '" + legend3 + "', 'Location', 'northwest');"
+	print >>myFile, "xlabel('Flow duration place');"
 	print >>myFile, "ylabel('Duration [us]');"
 	print >>myFile, "print -djpg " + imagename
 	print >>myFile, "endfunction"
@@ -63,14 +84,5 @@ print "This is the name of the script: ", sys.argv[0]
 print "Number of arguments: ", len(sys.argv)
 print "The arguments are: " , str(sys.argv)
 
-# sys.argv[1] - figure name
-# sys.argv[2] - file 1
-# sys.argv[3] - file 2
-# sys.argv[4] - file 3
-# sys.argv[5] - file 4
-# sys.argv[6] - legend 1
-# sys.argv[7] - legend 2
-
-throughputgraphs(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7])
-
+throughputgraphs(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10])
 
