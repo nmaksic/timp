@@ -71,8 +71,36 @@ private:
   uint32_t m_dstPrice;
 };
 
+class TimpTag : public Tag
+{
+public:
+  /**
+   * \brief Get the type ID.
+   * \return the object TypeId
+   */
+  static TypeId GetTypeId (void);
+  virtual TypeId GetInstanceTypeId (void) const;
+  virtual uint32_t GetSerializedSize (void) const;
+  virtual void Serialize (TagBuffer i) const;
+  virtual void Deserialize (TagBuffer i);
+  virtual void Print (std::ostream &os) const;
+
+  // these are our accessors to our tag structure
+  /**
+   * Set the tag value
+   * \param value The tag value.
+   */
+  void SetSimpleValue (uint8_t value);
+  /**
+   * Get the tag value
+   * \return the tag value.
+   */
+  uint8_t GetSimpleValue (void) const;
+private:
+  uint8_t m_simpleValue;  //!< tag value
+};
+
 }
 
 
 #endif /* Timp_HEADER_H */
-
