@@ -31,7 +31,8 @@
 namespace ns3 {
 
 
-#define DST_HASH_SIZE 97
+//#define DST_HASH_SIZE 97
+#define DST_HASH_SIZE 997
 #define DST_MAX 100
 #define PRT_MAX 20
 
@@ -93,6 +94,13 @@ public:
   void PrintPrices(bool alternateonly, int routercount);
 
   void PrintStatistics();
+  
+  uint32_t GetLocalUpdates();
+  uint32_t GetRouteUpdates();
+  uint32_t GetGeneratedRouteUpdates();
+
+  void SetNeighbors(std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> neighbours);
+  void SetDestinationNetworks(std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >> networks, uint32_t swcount);
 
 protected:
   virtual void DoDispose ();
@@ -117,6 +125,12 @@ private:
 
   void HandleUpdate (TimpUpdateHeader requestHdr, Ipv4Address senderAddress, uint16_t senderPort, uint32_t incomingInterface);
 
+  int getdstid(ns3::Ipv4Address& dst);
+  
+  void incHashRr();
+  uint32_t getHtDst(uint32_t ht);
+
+
   Routes m_routes; 
   Ptr<Ipv4> m_ipv4; 
 
@@ -134,6 +148,12 @@ private:
 
   bool m_initialized; 
   uint32_t m_linkDown; 
+  
+  uint32_t m_routeUpdates;
+  uint32_t m_localUpdates;
+  uint32_t m_generatedRouteUpdates;
+  uint32_t m_swcount;
+  uint32_t m_hashRoundRobin;
 
   RoutesTor m_routesTor; 
 
@@ -148,8 +168,11 @@ private:
   int pricessent[DST_MAX];
   long portflows[PRT_MAX];
   long porthashes[PRT_MAX];
+  
+  std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> switchNeighbours; // port id, neigbout adr, neigbour id
+  std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >> switchNetworks;
+  
 };
 
 } 
 #endif /* TIMP_H */
-
