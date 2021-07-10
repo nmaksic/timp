@@ -80,7 +80,7 @@ class Nodes
 	std::list<slinkends> linkends;
 	bool getlinkends(int switcha, int switchb, slinkends *sle);
    std::pair <uint32_t, std::string> getifcnbr(int switcha, int switchb);
-   void depthFirstSearch(std::vector<TNodep> &path, std::vector<std::vector<TNodep>> &finishedPaths, int dstid, int depth);
+   void depthFirstSearch(std::vector<TNodep> &path, std::vector<std::vector<TNodep>> &finishedPaths, int dstid, int depth, int maxlen);
    int setkoeficijentidfs(std::vector<std::vector<TNodep>> &finishedPaths, std::map<unsigned int, std::list<sroute>> &routemap);
    bool checkpaths(std::vector<std::vector<TNodep>> &finishedPaths, std::vector<TNodep> &toadd);
 public:
@@ -94,7 +94,7 @@ public:
 	void topologyfinished();
 	int getnbr(int switcha, unsigned int ifc);
 	void writeroutes1(std::list<sroute> *routes, int rootst, std::map<std::pair<int,int>, int> *routingtable);
-   int nDepthFirstSearch(Links* linkp);
+   int nDepthFirstSearch(Links* linkp, int maxlen);
 	Nodes(int switchCount1); 
 	~Nodes();
 };
