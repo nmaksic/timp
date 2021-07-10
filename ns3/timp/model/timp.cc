@@ -31,6 +31,8 @@
 
 #define TIMP_PORT 11001
 
+#define FLOWLET_TIMEOUT 200
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("Timp");
@@ -40,6 +42,10 @@ NS_OBJECT_ENSURE_REGISTERED (Timp);
 Timp::Timp ()
   : m_ipv4 (0), m_initialized (false) {
   m_routes.clear();
+  m_routeUpdates = 0;
+  m_localUpdates = 0;
+  m_generatedRouteUpdates = 0;
+  m_hashRoundRobin = 0;
 }
 
 Timp::~Timp () {
@@ -66,7 +72,7 @@ void Timp::DoInitialize () {
 
       m_ipv4->SetForwarding (i, true);
 
-      for (uint32_t j = 0; j < m_ipv4->GetNAddresses (i); j++) {
+      /*for (uint32_t j = 0; j < m_ipv4->GetNAddresses (i); j++) {
          Ipv4InterfaceAddress address = m_ipv4->GetAddress (i, j);
          if (address.GetScope() != Ipv4InterfaceAddress::HOST) {
 
@@ -82,7 +88,7 @@ void Timp::DoInitialize () {
             socket->SetRecvPktInfo (true);
 
          }
-      }
+      }*/
    }
 
    Ipv4RoutingProtocol::DoInitialize ();
@@ -296,10 +302,12 @@ void Timp::PrintStatistics() {
 Ptr<Ipv4Route> Timp::LookupTimp (Ipv4Address dst, Ptr<const Packet> p, const Ipv4Header &header, Ptr<NetDevice> interface, bool generatedpacket) {
 
   Ptr<Ipv4Route> rtentry = 0;
-  uint16_t longestMask = 0;
+  //uint16_t longestMask = 0;
+   rtentry = Create<Ipv4Route> ();
+   Ipv4Address gw("0.0.0.0");
+   rtentry->SetGateway (gw);
 
-
-   TimpRoutingTableEntry* selectedroute = NULL;
+   /*TimpRoutingTableEntry* selectedroute = NULL;
    for (RoutesI it = m_routesTor.begin (); it != m_routesTor.end (); it++)
     {
       TimpRoutingTableEntry* j = it->first;
@@ -324,7 +332,7 @@ Ptr<Ipv4Route> Timp::LookupTimp (Ipv4Address dst, Ptr<const Packet> p, const Ipv
                   uint32_t interfaceIdx = route->GetInterface ();
                   rtentry = Create<Ipv4Route> ();
 
-                  if (route->GetDest ().IsAny ()) /* default route */
+                  if (route->GetDest ().IsAny ()) 
                     {
                       rtentry->SetSource (m_ipv4->SourceAddressSelection (interfaceIdx, route->GetGateway ()));
                     }
@@ -343,23 +351,178 @@ Ptr<Ipv4Route> Timp::LookupTimp (Ipv4Address dst, Ptr<const Packet> p, const Ipv
                 }
             }
         }
-    }
-
+    }*/
     // found lpm, now check and update hash
-    if (rtentry && !generatedpacket) {
-      if (selectedroute != NULL) {
+    
+    if (generatedpacket) {
+   
+      TimpTag tag;
+      p->PeekPacketTag (tag);
+      
+      int ui = tag.GetSimpleValue();
+      if (ui == 1) {
+   
+         // route to interface towards neighbor based on dst address
+         std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>>::iterator it;
+         for (it = switchNeighbours.begin(); it != switchNeighbours.end(); ++it)
+            if (std::get<1>(*it) == dst) 
+               rtentry->SetOutputDevice (m_ipv4->GetNetDevice (std::get<0>(*it)));
+         
+         
+         return rtentry;
+         
+      }
+           
+   }
+   
+   // check server interfaces
+   for (uint32_t i = 0 ; i < m_ipv4->GetNInterfaces (); i++) {
+      std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>>::iterator it;
+         bool isServerIfc = true;
+         for (it = switchNeighbours.begin(); it != switchNeighbours.end(); ++it){
+            if (std::get<0>(*it) == i) {
+               isServerIfc = false;
+               break;
+            }
+         }
+         if (isServerIfc) {
+            for (uint32_t j = 0; j < m_ipv4->GetNAddresses (i); j++) {
+               Ipv4InterfaceAddress address = m_ipv4->GetAddress (i, j);
+               Ipv4Address adr = address.GetLocal ();
+               Ipv4Mask mask = address.GetMask ();
+               
+               if (mask.IsMatch (dst, adr)) {
+               
+                  rtentry->SetOutputDevice (m_ipv4->GetNetDevice (i));
+                  
+                  
+                  if (header.GetProtocol() == 6) {
+                     TcpHeader tcpHeader;
+                     p->PeekHeader(tcpHeader);
+                  
+                     if ((tcpHeader.GetFlags ()) & TcpHeader::SYN) {
+                        int dstid = m_ipv4->GetObject<Node> ()->GetId ();
+                        sendcost(dstid, 0); // price 0
+                        m_generatedRouteUpdates++; 
+                        //synflags++;
+                        //std::cout << "SYN flag " <<  << std::endl;
+                     }
+                  }
+                  
+                  // triger update of the entire tree
+                  // no need because switches will do that for each part of the path
+                  
+                  /*int dstid = m_ipv4->GetObject<Node> ()->GetId ();
+                  int fh = CalcFlowHash (p, header);
+                  int64_t curtime = ns3::Simulator::Now().GetMicroSeconds ();
+                  
+                  //int outputifc = flowhash[dstid * DST_HASH_SIZE + fh];
+                  int64_t elapsedtime = flowtime[dstid * DST_HASH_SIZE + fh];
+                  
+                  if (curtime < elapsedtime + 100) {
+                     
+                  } else {
+                  
+                     //if (elapsedtime > 0) {
+                        flowtime[dstid * DST_HASH_SIZE + fh] = curtime;
+                     //}
+                     sendcost(dstid, 0); // price 0
+                     m_generatedRouteUpdates++;
+                  }*/
+                  
+                  return rtentry;
+               }
+            }  
+         }
+     }
 
-         int dstid = selectedroute->GetDstId();
+   
+   int dstid = getdstid(dst);
+   
+   if (dstid == -1)
+      return NULL;
+   // if (rtentry && !generatedpacket) {
+   //   if (selectedroute != NULL) {
 
+   //      int dstid = selectedroute->GetDstId();
+   
          int fh = CalcFlowHash (p, header);
+         int64_t curtime = ns3::Simulator::Now().GetMicroSeconds ();
+    
+         // check second hash table entry for expiration
+         incHashRr();
+         uint32_t ht1 = dstid * DST_HASH_SIZE + fh;
+         if (m_hashRoundRobin == ht1)
+            incHashRr();
+         
+         int outputifc = flowhash[m_hashRoundRobin];
+         int64_t elapsedtime = flowtime[m_hashRoundRobin];
 
-         int64_t curtime = ns3::Simulator::Now().GetMilliSeconds ();
+         if (elapsedtime != 0 && curtime >= elapsedtime + FLOWLET_TIMEOUT && outputifc > 0) {
+            //uint32_t dstid1 = getRrDst();
+            flowtime[dstid * DST_HASH_SIZE + fh] = 0;
+            prices_prt[(outputifc-1)]--;
+            //if (selectedoutputifc == outputifc)
+            //   minprice--;
+         }
+   
+         // choose next hop
+         
+        int selectedoutputifc=alternaterutes[ALTRT_MAX * dstid]; //selectedroute->GetInterface ();
+        int price_nbr = prices_nbr[(selectedoutputifc-1)*DST_MAX + dstid];
+        int price_prt = prices_prt[(selectedoutputifc-1)];
+        int price = std::max(price_nbr, price_prt);
 
-         int outputifc = flowhash[dstid * DST_HASH_SIZE + fh];
-         int64_t elapsedtime = flowtime[dstid * DST_HASH_SIZE + fh];
+         int minprice = price;
+         int maxprice = price;
+         int lastprtprice = price_prt;
 
- 
-         if (curtime < elapsedtime + 500 && outputifc > 0) {
+         for (int i = 1; i < ALTRT_MAX; i++) {
+            int prt = alternaterutes[ALTRT_MAX * dstid + i];
+            
+            if (prt > 0) {
+               price_nbr = prices_nbr[(prt-1)*DST_MAX + dstid];
+               price_prt = prices_prt[(prt-1)];
+               price = std::max(price_nbr, price_prt);
+       
+               // ako su cene jednake preferiramo rutu kojoj max util nije na susednom linku
+               if (price < minprice || (price == minprice && price_prt < lastprtprice)) {
+                  minprice = price;
+                  selectedoutputifc = prt;
+                  lastprtprice = price_prt;
+
+               }
+               if (price > maxprice) 
+                  maxprice = price;
+            }
+         }
+            
+            
+         
+
+         
+    
+         /*
+         if (m_ipv4->GetObject<Node> ()->GetId () == 0) {
+         if (header.GetProtocol() == 6) {
+         TcpHeader tcpHeader;
+         p->PeekHeader(tcpHeader);
+         uint16_tdstport = tcpHeader.GetDestinationPort ();
+         uint16_t srcport = tcpHeader.GetSourcePort ();
+         
+         //if (dstport == 9000)
+         //std::cout << "fh: " << fh << " dstport " << dstport << " srcport " << srcport << " simtime " << Simulator::Now().GetMicroSeconds () << std::endl;
+         //}
+         }
+         }*/
+         
+         
+
+         outputifc = flowhash[dstid * DST_HASH_SIZE + fh];
+         elapsedtime = flowtime[dstid * DST_HASH_SIZE + fh];
+
+         // flowlet gap 200us as in Contra paper
+         if (curtime < elapsedtime + FLOWLET_TIMEOUT && outputifc > 0) {
             
             uint32_t interfaceIdx = outputifc;
             rtentry->SetOutputDevice (m_ipv4->GetNetDevice (interfaceIdx));
@@ -367,45 +530,26 @@ Ptr<Ipv4Route> Timp::LookupTimp (Ipv4Address dst, Ptr<const Packet> p, const Ipv
 
             porthashes[interfaceIdx]++;
             
+            selectedoutputifc = outputifc;
+            
          } else {
             // empty previous hash
             if (elapsedtime > 0) {
                flowtime[dstid * DST_HASH_SIZE + fh] = 0;
                prices_prt[(outputifc-1)]--;
+               if (selectedoutputifc == outputifc)
+                  minprice--;
             }
-            // choose next hop
-           int selectedoutputifc=alternaterutes[ALTRT_MAX * dstid]; //selectedroute->GetInterface ();
-           int price_nbr = prices_nbr[(selectedoutputifc-1)*DST_MAX + dstid];
-           int price_prt = prices_prt[(selectedoutputifc-1)];
-           int price = std::max(price_nbr, price_prt);
-
-            int minprice = price;
-            int maxprice = price;
-            int lastprtprice = price_prt;
-
-            for (int i = 1; i < ALTRT_MAX; i++) {
-               int prt = alternaterutes[ALTRT_MAX * dstid + i];
-               
-               if (prt > 0) {
-                  price_nbr = prices_nbr[(prt-1)*DST_MAX + dstid];
-                  price_prt = prices_prt[(prt-1)];
-                  price = std::max(price_nbr, price_prt);
-          
-                  // ako su cene jednake preferiramo rutu kojoj max util nije na susednom linku
-                  if (price < minprice || (price == minprice && price_prt < lastprtprice)) {
-                     minprice = price;
-                     selectedoutputifc = prt;
-                     lastprtprice = price_prt;
-
-                  }
-                  if (price > maxprice) 
-                     maxprice = price;
-               }
-            }
-
+            minprice++;
+            
+            
             // write hash
             if (selectedoutputifc > 0) {
-                  sendcost(dstid, minprice+1); 
+                  if (outputifc != selectedoutputifc || pricessent[dstid] != minprice) {
+                     sendcost(dstid, minprice); 
+                     m_localUpdates++;
+                     m_generatedRouteUpdates++;
+                  }
                   rtentry->SetOutputDevice (m_ipv4->GetNetDevice (selectedoutputifc));
                   flowhash[dstid * DST_HASH_SIZE + fh] = selectedoutputifc;
                   flowtime[dstid * DST_HASH_SIZE + fh] = curtime;
@@ -416,10 +560,77 @@ Ptr<Ipv4Route> Timp::LookupTimp (Ipv4Address dst, Ptr<const Packet> p, const Ipv
          }
 
          
+         
+         
+         
+         
+         //if (m_ipv4->GetObject<Node> ()->GetId () == 1) {
+         //std::cout << "selectedoutputifc " << selectedoutputifc << std::endl;
+        //}
+         
+   //   }
+  //  }
+
+  
+
+  return rtentry;
+
+}
+
+
+void Timp::incHashRr() {
+
+   //uint32_t dst = getHtDst(m_hashRoundRobin);
+
+   
+   m_hashRoundRobin++;
+   //uint32_t dst1 = getHtDst(m_hashRoundRobin);
+   //if (dst != dst1) {
+   //   m_hashRoundRobin = dst * DST_HASH_SIZE;
+   //}
+   if (m_hashRoundRobin >= DST_HASH_SIZE*(m_swcount-1)) 
+      m_hashRoundRobin = 0;
+   
+}
+
+uint32_t Timp::getHtDst(uint32_t ht) {
+   
+   return ht / DST_HASH_SIZE;
+   
+}
+
+
+int Timp::getdstid(ns3::Ipv4Address& dst) {
+   int result = -1;
+   uint16_t longestMask = 0;
+
+   std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >>::iterator ita;
+   for (ita = switchNetworks.begin (); ita != switchNetworks.end (); ita++)
+    {
+      //std::cout << ita->first << ": ";
+      std::list<std::pair <Ipv4Address, Ipv4Mask>>::iterator ita1;
+      for (ita1 = ita->second.begin (); ita1 != ita->second.end (); ita1++) {
+         //std::cout << ita->first << ", " << ita1->first << ", " << ita1->second << std::endl;  
+         Ipv4Address adr = ita1->first;
+         Ipv4Mask mask = ita1->second;
+         uint16_t maskLen = mask.GetPrefixLength ();
+         if (mask.IsMatch (dst, adr)) {
+         
+            if (maskLen < longestMask)
+                     continue;
+
+            longestMask = maskLen;
+            
+            result = ita->first;
+             
+         }
       }
     }
 
-  return rtentry;
+    if (result == -1)
+      std::cout << "Timp::getdstid() error" << std::endl;
+      
+    return result;
 
 }
 
@@ -458,11 +669,21 @@ void Timp::sendcost(int dstId, int dstPrice) {
 
 void Timp::sendcost2(Ptr<Socket> sendingSocket, int dstId, int dstPrice, const std::string &adr) {
 
+  
   Ptr<Packet> p = Create<Packet> ();
   SocketIpTtlTag tag;
   p->RemovePacketTag (tag);
   tag.SetTtl (1);
   p->AddPacketTag (tag);
+  
+  /*SocketIpTosTag tostag;
+  p->RemovePacketTag (tostag);
+  tostag.SetTos (Socket::NS3_PRIO_CONTROL);
+  p->AddPacketTag (tostag);*/
+
+  TimpTag timpTag;
+  timpTag.SetSimpleValue (1);
+  p->AddPacketTag (timpTag);
 
   Ipv4Address dstAdr(adr.c_str());
 
@@ -477,7 +698,7 @@ void Timp::sendcost2(Ptr<Socket> sendingSocket, int dstId, int dstPrice, const s
   sendingSocket->SendTo (p, 0, InetSocketAddress (dstAdr, TIMP_PORT));
   p->RemoveHeader (hdr);
 
-  
+  m_routeUpdates++;
 }
 
 template <class T>
@@ -534,6 +755,10 @@ void Timp::AddTorRouteTo (Ipv4Address network, Ipv4Mask networkPrefix, int torid
   route->SetDstId (torid);
   m_routesTor.push_back (std::make_pair (route, EventId ()));
 
+   /*if (m_ipv4->GetObject<Node> ()->GetId () == 0) {
+      std::cout << "AddTorRouteTo torid" << torid << " interface " << interface << std::endl;
+   }*/
+
   for (int i = 0; i < ALTRT_MAX; i++) {
      uint32_t prt = alternaterutes[ALTRT_MAX * torid + i];
 
@@ -541,6 +766,7 @@ void Timp::AddTorRouteTo (Ipv4Address network, Ipv4Mask networkPrefix, int torid
          break;
      if (prt == 0) {
          alternaterutes[ALTRT_MAX * torid+i] = interface;
+         //std::sort(alternaterutes + ALTRT_MAX * torid, alternaterutes + ALTRT_MAX * torid + i+1);
          break;
      }
   }
@@ -549,6 +775,10 @@ void Timp::AddTorRouteTo (Ipv4Address network, Ipv4Mask networkPrefix, int torid
 }
 
 void Timp::AddPreviousPort (int dstid, uint32_t interface, std::string adr) {
+
+   /*if (dstid == 0 && m_ipv4->GetObject<Node> ()->GetId () == 0) {
+      std::cout << " AddPreviousPort " << interface << std::endl;
+   }*/
 
    if ( previousPorts.find(dstid) == previousPorts.end() ) 
       previousPorts.insert ( std::pair<int,std::list<std::pair <uint32_t, std::string>>>(dstid,std::list<std::pair <uint32_t, std::string>>()) );
@@ -588,6 +818,17 @@ void Timp::Receive (Ptr<Socket> socket) {
 
    if (hdr.GetCommand () == TimpUpdateHeader::UPDATE) {
       HandleUpdate(hdr, senderAddress, senderPort, ipInterfaceIndex); 
+      
+      // remove header
+      //UdpHeader udpHeader;
+      //packet->RemoveHeader (udpHeader);
+
+      // remove header
+      //Ipv4Header ipHeader;
+      //packet->RemoveHeader (ipHeader);
+      
+      //std::cout << "tos " << ipHeader.GetTos() << std::endl;
+      
    }
 
   return;
@@ -608,8 +849,8 @@ void Timp::HandleUpdate (TimpUpdateHeader hdr, Ipv4Address senderAddress, uint16
    for (int i = 0; i < ALTRT_MAX; i++) {
       int prt = alternaterutes[ALTRT_MAX * dstId + i];
       if (prt > 0) {
-         int price_nbr = prices_nbr[(incomingInterface-1)*DST_MAX + dstId];
-         int price_prt = prices_prt[(incomingInterface-1)];
+         int price_nbr = prices_nbr[(prt-1)*DST_MAX + dstId];
+         int price_prt = prices_prt[(prt-1)];
          int price = price_nbr + price_prt;
          if (price < minprice || (price == minprice && price_prt < lastprtprice)) {
             minprice = price;
@@ -621,6 +862,54 @@ void Timp::HandleUpdate (TimpUpdateHeader hdr, Ipv4Address senderAddress, uint16
    if (minprice != pricessent[dstId]) {
       sendcost(dstId, dstPrice);
    }
+}
+
+
+uint32_t Timp::GetLocalUpdates() {
+   return m_localUpdates;
+}
+
+uint32_t Timp::GetRouteUpdates() {
+   return m_routeUpdates;
+}
+
+uint32_t Timp::GetGeneratedRouteUpdates() {
+   return m_generatedRouteUpdates;
+}
+
+void Timp::SetNeighbors(std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> neighbours) {
+   switchNeighbours = neighbours;
+   
+   std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>>::iterator it;
+   for (it = switchNeighbours.begin(); it != switchNeighbours.end(); ++it){
+   
+      uint32_t i = std::get<0>(*it); // it->first;
+      
+      for (uint32_t j = 0; j < m_ipv4->GetNAddresses (i); j++) {
+            Ipv4InterfaceAddress address = m_ipv4->GetAddress (i, j);
+            if (address.GetScope() != Ipv4InterfaceAddress::HOST) {
+
+               TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
+               Ptr<Node> theNode = GetObject<Node> ();
+               Ptr<Socket> socket = Socket::CreateSocket (theNode, tid);
+               InetSocketAddress local = InetSocketAddress (address.GetLocal (), TIMP_PORT);
+               socket->BindToNetDevice (m_ipv4->GetNetDevice (i));
+               socket->Bind (local);
+               socket->SetIpRecvTtl (true);
+               m_sendSocketList[socket] = i;
+               socket->SetRecvCallback (MakeCallback (&Timp::Receive, this));
+               socket->SetRecvPktInfo (true);
+               //socket->SetPriority(Socket::NS3_PRIO_CONTROL);
+               //socket->SetIpTos(Socket::NS3_PRIO_CONTROL);
+
+            }
+       }
+   }
+}
+
+void Timp::SetDestinationNetworks(std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >> networks, uint32_t swcount) {
+  switchNetworks = networks;
+  m_swcount = swcount;
 }
 
 
@@ -652,4 +941,3 @@ int TimpRoutingTableEntry::GetDstId () const {
 
 
 }
-
