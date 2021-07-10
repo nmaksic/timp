@@ -39,7 +39,8 @@ public:
   TimpGlobal ();
 
 
-  void Initialize (NodeContainer network, std::list< int > &torlist);
+  void Initialize (NodeContainer network, std::list< int > &torlist, std::list<std::pair <int, std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> >> switchNeighbours, 
+                           std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >> switchNetworks, NodeContainer switches);
 
   void PrintStatistics ();
 
@@ -63,4 +64,3 @@ private:
 } // namespace ns3
 
 #endif
-
