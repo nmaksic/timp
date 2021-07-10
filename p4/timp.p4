@@ -1,6 +1,6 @@
 /*
 * This file is part of the TIMP distribution (https://github.com/nmaksic/timp).
-* Copyright (c) 2020 Natasa Maksic <maksicn@etf.rs>
+* Copyright (c) 2020 Natasa Maksic.
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,6 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
-*
 */
 
 // P4_16 
@@ -121,7 +120,9 @@ struct metadata {
     PortId_t altPort2; // second alternative port towards to packet destination
     PortId_t altPort3; // thirt alternative port towards to packet destination
 	 swId_t dstSw;			
-	 PortId_t localPort;
+
+    PortId_t localPort;
+    bit<8> multicastGroupOffset;
 
 }
 
@@ -249,10 +250,11 @@ control MyIngress(inout headers hdr,
 	
 
 	 // action for ipv4_altports table
-    action lfmp_altports(PortId_t altPort1, PortId_t altPort2, PortId_t altPort3) {
+    action lfmp_altports(PortId_t altPort1, PortId_t altPort2, PortId_t altPort3, bit<8> multicastGroupOffset) {
         meta.altPort1 = altPort1;
-		  meta.altPort2 = altPort2;
-		  meta.altPort3 = altPort3;
+	meta.altPort2 = altPort2;
+	meta.altPort3 = altPort3;
+	meta.multicastGroupOffset = multicastGroupOffset;
     }
 
 	 // action for ipv4_lpm table
@@ -675,7 +677,7 @@ control MyIngress(inout headers hdr,
 
 
 		if (hdr.update.isValid() || hdr.update_local.isValid()) { // we use multicast in order to generate updates
-			standard_metadata.mcast_grp = (bit<16>)( PORT_COUNT * (g_Dst-1) + sendPort ); 
+			standard_metadata.mcast_grp = (bit<16>)(meta.multicastGroupOffset + sendPort ); 
 		}
 
 	
@@ -730,7 +732,7 @@ control MyEgress(inout headers hdr,
 				hdr.tcp.setInvalid();
 				hdr.update.setInvalid();
 				hdr.update_local.setValid();
-				hdr.ethernet.etherType = TYPE_LOCAL; // obavezno kad se menja header
+				hdr.ethernet.etherType = TYPE_LOCAL; 
 				recirculate(standard_metadata);
 			}
 		} 
