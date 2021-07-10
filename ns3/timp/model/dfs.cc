@@ -31,10 +31,10 @@ using namespace std;
 
 #define ROUTEMATRICES
 
-void Nodes::depthFirstSearch(vector<TNodep> &path, vector<vector<TNodep>> &finishedPaths, int dstid, int depth)
+void Nodes::depthFirstSearch(vector<TNodep> &path, vector<vector<TNodep>> &finishedPaths, int dstid, int depth, int maxlen)
 
 {
-   if (depth++ > 15) {
+   if (depth++ > maxlen) {
       // stop search
       return;
    }
@@ -79,18 +79,14 @@ void Nodes::depthFirstSearch(vector<TNodep> &path, vector<vector<TNodep>> &finis
          std::vector<TNodep> path1(path);
          path1.push_back (*W);
          
-         /*for (std::vector<TNodep>::iterator it = path1.begin() ; it != path1.end(); ++it)
-             std::cout << ' ' << it->node_id;
-           std::cout << '\n';*/
-         
-         depthFirstSearch(path1, finishedPaths, dstid, depth);
+         depthFirstSearch(path1, finishedPaths, dstid, depth, maxlen);
       }
 
    }
 }
 
 
-int Nodes::nDepthFirstSearch(Links* linkp)
+int Nodes::nDepthFirstSearch(Links* linkp, int maxlen)
 {
    if (linkp==NULL) 
       return(1);
@@ -110,7 +106,7 @@ int Nodes::nDepthFirstSearch(Links* linkp)
                vector<TNodep> path;
                path.push_back(*(nodeList[j]));
 
-               depthFirstSearch(path, finishedPaths, dst, 0); 
+               depthFirstSearch(path, finishedPaths, dst, 0, maxlen); 
 
             }  
          }
@@ -212,7 +208,7 @@ int Nodes::setkoeficijentidfs(vector<vector<TNodep>> &finishedPaths, map<unsigne
             std::map<unsigned int, list<sroute>>::iterator it = routemap.find(tekuci);
             if (it == routemap.end()) {
                list<sroute> l1;
-               routemap[tekuci] = l1; // napravi pa prekopira ali nema veze
+               routemap[tekuci] = l1; 
                it = routemap.find(tekuci);
             }
 
@@ -501,4 +497,3 @@ void Nodes::topologyfinished() {
    nodeList = tmp;
 
 }
-
