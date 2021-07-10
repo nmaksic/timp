@@ -86,8 +86,32 @@ TimpGlobal::GetTimpRouting (Ptr<Ipv4> ipv4) const
 
 
 void
-TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist)
+TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist, std::list<std::pair <int, std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> >> switchNeighbours, 
+                           std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >> switchNetworks, NodeContainer switches)
 {
+      // initialize switches with networks and neighbors
+      for(NodeContainer::Iterator sw = switches.Begin ();  sw != switches.End (); sw++)
+       {
+       int dstid = (*sw)->GetId();
+       Ptr<Ipv4> ipv4 = (*sw)->GetObject<Ipv4>();
+       Ptr<Timp> timp = GetTimpRouting(ipv4);
+
+       // set neighbors
+       std::list<std::pair <int, std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> >>::iterator it;
+         for (it = switchNeighbours.begin (); it != switchNeighbours.end (); it++)
+          {
+            if (it->first == dstid) {
+               if (timp != 0) {  
+                     timp->SetNeighbors(it->second);
+               } 
+            }
+          }
+       
+         // set destination networks
+         timp->SetDestinationNetworks(switchNetworks, switches.GetN());
+       }       
+
+
       char routesfile[100];
       sprintf(routesfile, "routes1.txt");
 
@@ -101,6 +125,7 @@ TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist)
       std::string neighborifcadr;
       std::string dststr;
 
+      int loop = 0;
 		if (routes.is_open()) {
 		   while ( routes.good() ) {
 			   getline (routes, nodeidstr);
@@ -111,7 +136,10 @@ TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist)
             getline (routes, neighborifcstr);
             getline (routes, neighborifcadr);
             getline (routes, dststr);
-
+            loop++;
+            
+            if (!routes.good())
+               break;
 			
 			   int nodeid = atoi(nodeidstr.c_str());
 			   int interface = atoi(interfacestr.c_str());
@@ -129,7 +157,6 @@ TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist)
 			      Ipv4Mask networkmask(destnetworkmask.c_str());			
                timp->AddNetworkRouteTo(network, networkmask, interface);
 
-
                bool found = (std::find(torlist.begin(), torlist.end(), dst) != torlist.end());
                if (found) {
                   // add information for tor switches network
@@ -137,7 +164,6 @@ TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist)
                   timp->AddTorRouteTo(network, networkmask1, dst, interface);
                }
             }
-
 
             Ptr<Ipv4> ipv41 = devices.Get(nbr)->GetObject<Ipv4>();
             Ptr<Timp> timp1 = GetTimpRouting(ipv41);
@@ -165,9 +191,23 @@ TimpGlobal::Initialize (NodeContainer devices, std::list< int > &torlist)
 void
 TimpGlobal::PrintStatistics ()
 {
-   for(std::vector<Ptr<Timp>>::iterator it = rtrpointers.begin(); it != rtrpointers.end(); ++it) 
+   std::ofstream updatesfile;
+   updatesfile.open ("timpupdatesfile.txt", std::ios::out | std::ios::app);
+   uint32_t totalLocalUpdates = 0;
+   uint32_t totalRouteUpdates = 0;
+   uint32_t totalGeneratedRouteUpdates = 0;
+   for(std::vector<Ptr<Timp>>::iterator it = rtrpointers.begin(); it != rtrpointers.end(); ++it) {
       (*it)->PrintStatistics();
+      totalLocalUpdates += (*it)->GetLocalUpdates();
+      totalRouteUpdates += (*it)->GetRouteUpdates();
+      totalGeneratedRouteUpdates +=  (*it)->GetGeneratedRouteUpdates();
+      updatesfile << "route updates " << (*it)->GetRouteUpdates() << " local updates " << (*it)->GetLocalUpdates() << " generated route updates " << (*it)->GetGeneratedRouteUpdates() << std::endl;
+   }
+   
+   
+   updatesfile << "TOTAL route updates " << totalRouteUpdates << " local updates " << totalLocalUpdates  << " generated route updates " << totalLocalUpdates << std::endl;
+   
+   updatesfile.close();
 }
 
 } // namespace ns3
-
