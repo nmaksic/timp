@@ -18,6 +18,7 @@ Running ns-3 simulation:
 - set executable permission for scripts: chmod +x simscript.sh flowduration.sh flowdurationcircle.sh
 - build ns-3 by executing the following command in ns-allinone-3.33 directory: ./build.py --enable-examples --enable-tests
 - execute ./simscript.sh in ns-3.33 directory to execute simulations 
+- images which contain resulting simulation graphs will be located in the directory ns-3.33
 
 ---------------------------
 Mininet emulation:
