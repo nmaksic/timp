@@ -1,0 +1,23 @@
+
+def build(bld):
+    module = bld.create_ns3_module('dash', ['internet'])
+    module.includes = '.'
+    module.source = [
+        'model/dash.cc',
+        'model/dash-header.cc',
+        'model/dash-global.cc',
+        'helper/dash-helper.cc',
+        ]
+
+
+    headers = bld(features='ns3header')
+    headers.module = 'dash'
+    headers.source = [
+        'model/dash.h',
+        'model/dash-header.h',
+        'model/dash-global.h',
+        'helper/dash-helper.h',
+        ]
+
+
+    bld.ns3_python_bindings()
