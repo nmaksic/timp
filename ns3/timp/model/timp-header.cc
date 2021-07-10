@@ -19,6 +19,7 @@
 
 #include "timp-header.h"
 #include "ns3/log.h"
+#include "ns3/uinteger.h"
 
 namespace ns3 {
 
@@ -100,5 +101,55 @@ uint32_t TimpUpdateHeader::GetDstPrice (void) const {
   return m_dstPrice;
 }
 
+TypeId 
+TimpTag::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::TimpTag")
+    .SetParent<Tag> ()
+    .AddConstructor<TimpTag> ()
+    .AddAttribute ("SimpleValue",
+                   "A simple value",
+                   EmptyAttributeValue (),
+                   MakeUintegerAccessor (&TimpTag::GetSimpleValue),
+                   MakeUintegerChecker<uint8_t> ())
+  ;
+  return tid;
+}
+TypeId 
+TimpTag::GetInstanceTypeId (void) const
+{
+  return GetTypeId ();
+}
+uint32_t 
+TimpTag::GetSerializedSize (void) const
+{
+  return 1;
+}
+void 
+TimpTag::Serialize (TagBuffer i) const
+{
+  i.WriteU8 (m_simpleValue);
+}
+void 
+TimpTag::Deserialize (TagBuffer i)
+{
+  m_simpleValue = i.ReadU8 ();
+}
+void 
+TimpTag::Print (std::ostream &os) const
+{
+  os << "v=" << (uint32_t)m_simpleValue;
+}
+void 
+TimpTag::SetSimpleValue (uint8_t value)
+{
+  m_simpleValue = value;
+}
+uint8_t 
+TimpTag::GetSimpleValue (void) const
+{
+  return m_simpleValue;
 }
 
+
+}
