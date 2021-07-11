@@ -751,6 +751,8 @@ int main (int argc, char **argv)
    
    remove( "ttl.txt" );
 
+   Config::SetDefault("ns3::Ipv4GlobalRouting::FlowEcmpRouting",BooleanValue(true));
+	
    int swcount;
    int swdimension;
    
@@ -852,7 +854,6 @@ int main (int argc, char **argv)
       }
       
    } else {
-      Config::SetDefault("ns3::Ipv4GlobalRouting::FlowEcmpRouting",BooleanValue(true));
 	   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
    }
 
