@@ -43,7 +43,7 @@ do
    rm flowcount5.txt
    cp flowduration.txt flowduration5.txt
    cp flowcount.txt flowcount5.txt
-*
+
    rm simgraph.jpg
 
    python parserflowduration1.py simgraph.jpg flowduration1.txt flowcount1.txt flowduration2.txt flowcount2.txt  flowduration3.txt flowcount3.txt  flowduration4.txt flowcount4.txt  flowduration5.txt flowcount5.txt  "ECMP" "TIMP" "Contra" "DASH packet" "DASH flowlet"
