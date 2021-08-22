@@ -11,14 +11,18 @@ Running ns-3 simulation:
 ---------------------------
 
 - extract ns-3.33.1 from archive file available at https://www.nsnam.org/releases/ns-3-33/
-- copy timp folders TIMP, Contra and DASH to ns-3.33/src directory
+- copy timp folders timp, contra and dash to ns-3.33/src directory
 - copy timpsim.cc to ns-3.33/scratch directory
 - copy ipv4-global-routing.cc, ipv4-global-routing.h and tcp-tx-buffer.cc to ns-3.33/src/internet/model
-- copy simscript.sh, flowduration.sh, flowdurationcircle.sh, parseflowduration.py, parseflowduration1.py, parseflowdurationcircle.sh and average.py to ns-3.33 directory
-- set executable permission for scripts: chmod +x simscript.sh flowduration.sh flowdurationcircle.sh
+- copy files flow-monitor.cc, flow-monitor.h, ipv4-flow-probe.cc, ipv6-flow-probe.cc, ipv6-flow-probe.h to ns-3.33/src/flow-monitor/model
+- copy files modulegen__gcc_ILP32.py and modulegen__gcc_LP64.py to ns-3.33/src/flow-monitor/bindings
+- copy simscript.sh, calculate_results.sh flowduration.sh, flowdurationcircle.sh, parseflowduration.py, parseflowduration1.py, parseflowdurationcircle.sh and average.py to ns-3.33 directory
+- copy folder results to directory ns-3.33
+- in the directory ns-3.33/results copy source folder of pugixml-1.11 (https://github.com/zeux/pugixml) to the following folders: routingoverhead, fct, queuebyteshistogram, packetdelayhistogram and avvgdroppedpackets. Then execute compile scripts in those folders.
+- set executable permission for scripts: chmod +x simscript.sh flowduration.sh flowdurationcircle.sh calculate_results.sh
 - build ns-3 by executing the following command in ns-allinone-3.33 directory: ./build.py --enable-examples --enable-tests
 - execute ./simscript.sh in ns-3.33 directory to execute simulations 
-- images which contain resulting simulation graphs will be located in the directory ns-3.33
+- simulation results will be located in the directory ns-3.33/results
 
 ---------------------------
 Mininet emulation:
