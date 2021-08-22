@@ -1,0 +1,11 @@
+cd results
+cd fct
+python calcfct.py
+cd ../routingoverhead
+python calcroutingovh.py
+cd ../queuebyteshistogram
+python drawhistogram.py
+cd ../packetdelayhistogram
+python drawhistogram.py
+cd ../droppedpackets
+python calcdropped.py
