@@ -44,6 +44,7 @@
 #include "ns3/dash-helper.h"
 #include "ns3/ipv4-l3-protocol.h"
 #include "ns3/traffic-control-module.h"
+#include "ns3/flow-monitor-helper.h"
 #include <map>
 #include <string>
 
@@ -58,7 +59,8 @@
 #define FLOWS_START 0.003
 
 #define SIM_DURATION 0.006
-#define SIM_DURATION_ECMP 0.011
+//#define SIM_DURATION_ECMP 0.011  
+#define SIM_DURATION_ECMP 0.006  
 #define SERVER_START 0.0
 
 #define SWSERVERS 42
@@ -111,6 +113,7 @@ int routing = 0; // 1 - timp, 2 - contra, 3 - dash packet, 4 - dash flowlet
 std::list<std::pair <int, std::list<std::tuple <uint32_t, Ipv4Address, uint32_t>> >> switchNeighbours;
 std::list<std::pair <int, std::list<std::pair <Ipv4Address, Ipv4Mask>> >> switchNetworks;
 
+Ptr<FlowMonitor> flowMon;
 
 
 NS_LOG_COMPONENT_DEFINE ("TimpRouting");
@@ -616,6 +619,7 @@ void RxTrace(Ptr<const Packet> packet, const Address &address, const Address &lo
          flowplacefile << " " <<  flowplace++;
       }
    }
+   
 }
 
 void printsetup() {
@@ -652,6 +656,9 @@ void printsetup() {
       
     }
 	std::cout << std::endl;
+	
+	
+	
 }
 
 uint32_t mIPv4Drop = 0;
@@ -954,12 +961,20 @@ int main (int argc, char **argv)
    Config::ConnectWithoutContext("/NodeList/*/ApplicationList/*/$ns3::PacketSink/RxWithAddresses", MakeCallback(&RxTrace));
    Config::ConnectWithoutContext("/NodeList/*/$ns3::Ipv4L3Protocol/Drop" , MakeCallback(&IPv4Drop));
 
+   FlowMonitorHelper flowMonHelper;
+	flowMon = flowMonHelper.InstallAll();
+
+   flowMon->SetAttribute("DelayBinWidth", DoubleValue ( 0.00001 ));
+   flowMon->SetAttribute("AverageQueueSizeBinWidth", DoubleValue ( 100 ));
+
    NS_LOG_INFO ("Run Simulation.");
    if (flowecmp) 
       Simulator::Stop (Seconds (SIM_DURATION_ECMP));
    else
       Simulator::Stop (Seconds (SIM_DURATION));
    Simulator::Run ();
+   
+   flowMon->SerializeToXmlFile("results.xml", true, true);
 
    if (!flowecmp) {
       if (routing == ROUTING_TIMP) 
@@ -982,4 +997,3 @@ int main (int argc, char **argv)
 
    NS_LOG_INFO ("Done.");
 }
-
