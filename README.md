@@ -20,6 +20,7 @@ Running ns-3 simulation:
 - copy folder results to directory ns-3.33
 - in the directory ns-3.33/results copy source folder of pugixml-1.11 (https://github.com/zeux/pugixml) to the following folders: routingoverhead, fct, queuebyteshistogram, packetdelayhistogram and droppedpackets. Then execute compile scripts in those folders.
 - set executable permission for scripts: chmod +x simscript.sh flowduration.sh flowdurationcircle.sh calculate_results.sh
+- octave should be installed on the computer in order for graphs to be created during simulation
 - build ns-3 by executing the following command in ns-allinone-3.33 directory: ./build.py --enable-examples --enable-tests
 - execute ./simscript.sh in ns-3.33 directory to execute simulations 
 - simulation results will be located in the directory ns-3.33/results
